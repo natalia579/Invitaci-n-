@@ -41,6 +41,14 @@ export function Cloud({ variant = 0, className, style }: CloudProps) {
           ))}
           <ellipse cx={c.base[0]} cy={c.base[1]} rx={c.base[2]} ry={c.base[3]} />
         </g>
+        {/* segunda aguada: luz cálida en las cimas */}
+        <g fill="#FFFDF7" opacity="0.7">
+          {c.puffs.map(([x, y, r], i) => (
+            <ellipse key={i} cx={x - r * 0.18} cy={y - r * 0.28} rx={r * 0.62} ry={r * 0.48} />
+          ))}
+        </g>
+        {/* toque de beige en la base */}
+        <ellipse cx={c.base[0]} cy={c.base[1] + c.base[3] * 0.4} rx={c.base[2] * 0.8} ry={c.base[3] * 0.45} fill="#D9C8B2" opacity="0.25" />
       </g>
     </svg>
   );

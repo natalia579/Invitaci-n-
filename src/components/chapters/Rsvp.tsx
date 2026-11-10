@@ -3,19 +3,21 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { invitation } from '../../content/invitation';
 import { Chapter, ChapterHeading, Pending, Reveal } from '../ui';
 import { Sparkle, Sprig } from '../illustrations/Sky';
+import { Corners } from '../illustrations/Landscape';
 import { rsvpStorageConfigured, submitRsvp, whatsappConfigured, whatsappUrl } from '../../lib/rsvp';
 
 type Status = 'idle' | 'sending' | 'saved' | 'error';
 
-export function ChapterSeven() {
-  const c = invitation.chapter7;
+export function ChapterEight() {
+  const c = invitation.chapter8;
   const [name, setName] = useState('');
   const [attending, setAttending] = useState<boolean | null>(null);
+  const [guests, setGuests] = useState(1);
   const [status, setStatus] = useState<Status>('idle');
   const [touched, setTouched] = useState(false);
 
   const valid = name.trim().length > 1 && attending !== null;
-  const data = { name, attending: attending ?? false };
+  const data = { name, attending: attending ?? false, guests: c.askGuestCount ? guests : undefined };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ export function ChapterSeven() {
 
   return (
     <Chapter
-      id="capitulo-7"
+      id="capitulo-8"
       decor={
         <>
           <Sprig className="absolute -right-3 top-[8%] w-24 opacity-75" flip />
@@ -55,7 +57,7 @@ export function ChapterSeven() {
 
       <Reveal delay={0.2} className="mt-9 w-full">
         <div className="paper-card relative w-full px-6 py-9 sm:px-9">
-          <div className="absolute inset-[8px] border border-gold/45" aria-hidden />
+          <Corners size={30} />
           <AnimatePresence mode="wait">
             {status === 'saved' ? (
               <motion.div
@@ -115,6 +117,29 @@ export function ChapterSeven() {
                     <p className="mt-2 font-serif text-sm italic text-cafe">Por favor elige una opción.</p>
                   )}
                 </fieldset>
+
+                {/* Número de asistentes (opcional, ver chapter8.askGuestCount) */}
+                {c.askGuestCount && attending !== false && (
+                  <div>
+                    <span id="rsvp-guests-label" className="label block text-cafe">
+                      {c.fields.guests}
+                    </span>
+                    <div className="mt-3 flex items-center justify-between gap-4">
+                      <span className="font-serif text-sm italic text-cafe/80">{c.fields.guestsHelp}</span>
+                      <div className="flex items-center gap-4" role="group" aria-labelledby="rsvp-guests-label">
+                        <button type="button" className="stepper" onClick={() => setGuests((g) => Math.max(1, g - 1))} aria-label="Menos asistentes" disabled={guests <= 1}>
+                          −
+                        </button>
+                        <output aria-live="polite" className="w-8 text-center font-display text-3xl lining-nums text-cocoa">
+                          {guests}
+                        </output>
+                        <button type="button" className="stepper" onClick={() => setGuests((g) => Math.min(c.maxGuests, g + 1))} aria-label="Más asistentes" disabled={guests >= c.maxGuests}>
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Acciones */}
                 <div className="flex flex-col items-center gap-3 pt-2">

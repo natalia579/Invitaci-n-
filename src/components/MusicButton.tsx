@@ -3,7 +3,7 @@ import { invitation } from '../content/invitation';
 import { useMusic } from '../hooks/useMusic';
 
 /** Botón discreto para activar / silenciar la música. */
-export function MusicButton({ visible }: { visible: boolean }) {
+export function MusicButton({ visible, onReplay }: { visible: boolean; onReplay: () => void }) {
   const { playing, blocked, toggle } = useMusic();
   const m = invitation.music;
   return (
@@ -31,6 +31,12 @@ export function MusicButton({ visible }: { visible: boolean }) {
               </motion.button>
             )}
           </AnimatePresence>
+          <button type="button" onClick={onReplay} aria-label={invitation.opening.replay} title={invitation.opening.replay} className="music-btn">
+            <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" aria-hidden>
+              <path d="M4 5.5c2.6-1 5.4-1 8 .8 2.6-1.8 5.4-1.8 8-.8v13c-2.6-1-5.4-1-8 .8-2.6-1.8-5.4-1.8-8-.8z" />
+              <path d="M12 6.3v13" />
+            </svg>
+          </button>
           <button
             type="button"
             data-music-toggle

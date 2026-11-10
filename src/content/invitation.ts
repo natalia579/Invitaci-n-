@@ -1,13 +1,12 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  CONTENIDO DE LA INVITACIÓN
+ *  CONTENIDO DE LA INVITACIÓN — “Once Upon a Little Dream”
  * ─────────────────────────────────────────────────────────────────────────────
  *  Este es el ÚNICO archivo que necesitas editar para cambiar textos, fecha,
  *  lugar, enlaces, música e ilustraciones. El diseño vive en /src/components.
  *
- *  Los valores marcados con `null` están PENDIENTES. Mientras
- *  `meta.showPendingMarkers` sea `true`, la página mostrará una pequeña
- *  etiqueta “Pendiente” en esos lugares para que sea fácil identificarlos.
+ *  Los valores `null` están PENDIENTES. Mientras `meta.showPendingMarkers`
+ *  sea `true`, la página muestra una etiqueta “Pendiente” en esos lugares.
  *  Antes de publicar, completa los datos y cambia ese valor a `false`.
  * ─────────────────────────────────────────────────────────────────────────────
  */
@@ -16,50 +15,66 @@ export const invitation = {
   meta: {
     /** Muestra etiquetas “Pendiente” en los datos que faltan. Pon `false` antes de publicar. */
     showPendingMarkers: true,
-    hosts: 'Natali y Santiago',
+    /** Nombres de los papás: SOLO aparecen al final del cuento. */
+    signature: 'Nati y Santi',
   },
 
-  /** Rutas a ilustraciones propias en acuarela (dentro de /public/illustrations).
-   *  Si un valor es `null`, se usa la ilustración vectorial incluida. */
+  /** Ilustraciones propias (en /public/illustrations). `null` = se usa la ilustración vectorial incluida. */
   illustrations: {
-    balloon: null as string | null, // p. ej. 'illustrations/globo.png'
+    balloon: null as string | null,
     cloud: null as string | null,
     rockingHorse: 'illustrations/caballito.png' as string | null,
     giftBox: null as string | null,
     stork: null as string | null,
-    venue: 'illustrations/lugar.jpg' as string | null, // ilustración del lugar
+    landscape: null as string | null,
+    venue: 'illustrations/lugar.jpg' as string | null,
   },
 
+  /** Apertura cinematográfica: libro 3D, cinta de raso y globo. */
   opening: {
-    banner: 'Gender Reveal & Baby Shower',
-    cardKicker: 'Una invitación para ti',
-    line1: 'Una pequeña historia está por comenzar…',
-    line2: 'Y queremos que seas parte de ella.',
-    scrollHint: 'Desliza para comenzar',
+    bookTitle: ['Once Upon', 'a Little Dream'] as [string, string],
+    bookKicker: 'Un pequeño sueño',
+    titlePage: 'Once Upon a Little Dream',
+    titlePageSub: 'Capítulo primero',
+    banner: 'Once Upon a Little Dream',
+    line1: 'Había una vez una historia que apenas comenzaba…',
+    line2: 'Y una pequeña sorpresa que lo cambiaría todo.',
+    scrollHint: 'Desliza para entrar al cuento',
+    replay: 'Volver a abrir el cuento',
   },
 
   chapter1: {
     number: 'I',
-    label: 'Una nueva aventura',
+    label: 'Había una vez…',
     paragraphs: [
-      'Hay historias que llegan sin avisar y terminan convirtiéndose en las más bonitas de nuestra vida.',
-      'Y la nuestra está a punto de comenzar un capítulo completamente nuevo.',
+      'Había una vez dos personas que tenían muchos planes…',
+      'Pero la vida, que a veces escribe historias mejores que las nuestras, tenía preparada una sorpresa.',
     ],
   },
 
   chapter2: {
     number: 'II',
-    label: 'La celebración',
-    title: 'Gender Reveal & Baby Shower',
+    label: 'Una pequeña gran sorpresa',
     paragraphs: [
-      'Entre tantas sorpresas que nos ha regalado la vida, hay una que queremos descubrir y celebrar rodeados de nuestras personas favoritas.',
-      'Por eso, queremos invitarte a compartir una tarde muy especial con nosotros.',
+      'Y así, sin pedir permiso, comenzó nuestra aventura más bonita.',
+      'Una que todavía no conocemos por completo, pero que ya nos tiene el corazón lleno.',
     ],
   },
 
   chapter3: {
     number: 'III',
-    label: 'Save the Date',
+    label: 'Hay secretos que merecen celebrarse',
+    paragraphs: [
+      'Hay una sorpresa que todavía está por descubrirse…',
+      'Y no se nos ocurre una forma más bonita de hacerlo que rodeados de las personas que queremos.',
+    ],
+    revealKicker: 'Te invitamos a nuestro',
+    reveal: ['Gender Reveal', 'Baby Shower'] as [string, string],
+  },
+
+  chapter4: {
+    number: 'IV',
+    label: 'Un día para recordar',
     weekday: 'Sábado',
     day: '28',
     monthYear: 'Noviembre 2026',
@@ -67,40 +82,35 @@ export const invitation = {
     /** Fecha y hora exactas del evento, con la zona horaria de Colombia (UTC−5). */
     isoDateTime: '2026-11-28T16:00:00-05:00',
     durationHours: 4,
+    countdownTitle: 'Faltan',
     countdownLabels: { days: 'Días', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos' },
-    countdownDone: '¡Hoy comienza nuestra historia!',
+    countdownDone: '¡Hoy comienza este capítulo!',
     addToCalendar: 'Agregar al calendario',
-    calendarTitle: 'Gender Reveal & Baby Shower · Natali y Santiago',
-  },
-
-  chapter4: {
-    number: 'IV',
-    label: 'Nuestro lugar de encuentro',
-    venueName: 'Orquideorama' as string | null,
-    address: 'Av. 2 Nte. #48, Olaya Herrera, Cali, Valle del Cauca' as string | null,
-    /** PENDIENTE: enlace de Google Maps (p. ej. https://maps.app.goo.gl/...). */
-    mapsUrl: 'https://maps.app.goo.gl/BF4CZeqT5JXgYqsJ8' as string | null,
-    directionsButton: 'Cómo llegar',
-    venueNameFallback: 'Lugar por confirmar',
-    addressFallback: 'Muy pronto compartiremos la dirección',
-    illustrationCaption: 'Ilustración del lugar',
+    calendarTitle: 'Gender Reveal & Baby Shower',
   },
 
   chapter5: {
     number: 'V',
-    label: 'Dress Code',
-    title: 'Dress Code',
-    /** Cada línea: quién lo dice + qué dice. */
-    quotes: [
-      { who: 'Como diría Santiago:', what: 'Old Money.', emphasis: true },
-      { who: 'Como diría Natali:', what: 'ponte bien lindo y ven a celebrar con nosotros.', emphasis: false },
-    ],
-    /** Muestra un pequeño corazón café ilustrado al final. */
-    heart: true,
+    label: 'El lugar donde nos encontraremos',
+    venueName: 'Orquideorama' as string | null,
+    address: 'Av. 2 Nte. #48, Olaya Herrera, Cali, Valle del Cauca' as string | null,
+    mapsUrl: 'https://maps.app.goo.gl/BF4CZeqT5JXgYqsJ8' as string | null,
+    directionsButton: 'Cómo llegar',
+    venueNameFallback: 'Lugar por confirmar',
+    addressFallback: 'Muy pronto compartiremos la dirección',
   },
 
   chapter6: {
     number: 'VI',
+    label: 'Dress Code',
+    quotes: [
+      { who: 'Como diría Santi:', what: 'Old Money.', emphasis: true },
+      { who: 'Como diría Nati:', what: 'tú ponte lindo, que lo importante es que vengas.', emphasis: false },
+    ],
+  },
+
+  chapter7: {
+    number: 'VII',
     label: 'Un detalle con amor',
     title: 'El mejor regalo es tenerte aquí.',
     paragraphs: [
@@ -109,17 +119,22 @@ export const invitation = {
     ],
   },
 
-  chapter7: {
-    number: 'VII',
-    label: 'Confirma tu asistencia',
+  chapter8: {
+    number: 'VIII',
+    label: '¿Nos acompañas?',
     intro: 'Nos encantaría saber si podremos contar contigo.',
     deadline: null as string | null, // p. ej. 'Por favor confírmanos antes del 20 de noviembre.'
+    /** La invitación es individual: por defecto no se pregunta el número de asistentes. */
+    askGuestCount: false as boolean,
+    maxGuests: 6,
     fields: {
       name: 'Tu nombre',
       namePlaceholder: 'Nombre y apellido',
       attending: '¿Nos acompañas?',
       yes: 'Sí, ahí estaré',
       no: 'No podré asistir',
+      guests: 'Número de asistentes',
+      guestsHelp: 'Incluyéndote a ti',
     },
     submit: 'Enviar confirmación',
     submitWhatsApp: 'Confirmar por WhatsApp',
@@ -129,32 +144,27 @@ export const invitation = {
     successNo: 'Gracias por avisarnos. Te llevaremos en el corazón ese día.',
     error: 'No pudimos guardar tu respuesta. Intenta de nuevo o confírmanos por WhatsApp.',
     whatsappPending: 'El número de WhatsApp aún no está configurado.',
-    /** Mensaje que se envía por WhatsApp. {name} y {attending} se reemplazan. */
-    whatsappTemplate: 'Hola Natali y Santiago, soy {name}. {attending}',
+    /** {name} y {attending} se reemplazan; {guests} dentro de whatsappYesGuests. */
+    whatsappTemplate: 'Hola Nati y Santi, soy {name}. {attending}',
     whatsappYes: '¡Confirmo mi asistencia al Gender Reveal & Baby Shower! Ahí estaré.',
+    whatsappYesGuests: '¡Confirmo mi asistencia al Gender Reveal & Baby Shower! Asistiremos {guests}.',
     whatsappNo: 'Lamentablemente no podré asistir al Gender Reveal & Baby Shower, pero les envío todo mi cariño.',
   },
 
-  chapter8: {
-    number: 'VIII',
-    label: 'El final del cuento',
-    paragraphs: [
-      'Las historias más bonitas siempre tienen algo en común: las personas con quienes las compartimos.',
-      'Gracias por ser parte de la nuestra.',
-    ],
+  chapter9: {
+    number: 'IX',
+    label: 'El final de nuestra historia… por ahora',
+    paragraphs: ['Porque las historias más bonitas no se cuentan solas…', 'Se viven con las personas que queremos.'],
     signoff: 'Con amor,',
-    signature: 'Natali y Santiago',
-    fin: 'Fin',
+    fin: 'Fin… por ahora',
   },
 
   /** Confirmaciones de asistencia. */
   rsvp: {
     /**
-     * URL del servicio donde se guardan las respuestas (PENDIENTE).
-     * Compatible con un Web App de Google Apps Script (ver docs/rsvp-google-sheets.md)
-     * o con Formspree (https://formspree.io/f/xxxx).
-     * Mientras sea `null`, sólo se ofrece la confirmación por WhatsApp
-     * y NUNCA se muestra un mensaje de “guardado”.
+     * URL del servicio donde se guardan las respuestas (opcional).
+     * Google Apps Script (ver docs/rsvp-google-sheets.md) o Formspree.
+     * Mientras sea `null`, sólo se ofrece WhatsApp y NUNCA se muestra “guardado”.
      */
     endpoint: (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined) || null,
     provider: 'google-apps-script' as 'google-apps-script' | 'formspree',
@@ -163,11 +173,8 @@ export const invitation = {
   },
 
   music: {
-    /**
-     * Archivo de audio propio o con licencia dentro de /public/audio
-     * (p. ej. 'audio/cancion.mp3'). Si es `null`, suena una melodía de caja
-     * musical original, generada en el navegador.
-     */
+    /** Archivo propio o con licencia en /public/audio (p. ej. 'audio/cancion.mp3').
+     *  Si es `null`, suena una melodía original de caja musical generada en el navegador. */
     src: null as string | null,
     volume: 0.55,
     enableLabel: 'Activar música',

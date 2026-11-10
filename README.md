@@ -1,4 +1,4 @@
-# A Little Story Is About to Begin
+# Once Upon a Little Dream
 
 Invitación digital interactiva — Gender Reveal & Baby Shower de Natali y Santi.
 React + TypeScript + Tailwind CSS + Vite + Framer Motion.
@@ -28,11 +28,21 @@ npm run preview    # sirve /dist
 Mientras `meta.showPendingMarkers` sea `true`, la página muestra etiquetas “Pendiente”.
 **Antes de publicar**, completa los datos y cámbialo a `false`.
 
+## La apertura 3D
+
+`src/three/BookScene.ts` construye con Three.js (WebGL) un libro de tapa dura sobre lino,
+con una cinta de raso que es geometría 3D real. El lazo se desata, la cinta se desliza, la tapa
+gira, pasan dos hojas y la cámara entra en la última página. Todas las texturas (tela, dorado
+en relieve, guardas, páginas, acuarela) se generan en el navegador: no hay descargas.
+Si el dispositivo no tiene WebGL o pide “reducir movimiento”, se salta al cuento ilustrado.
+El botón con el libro (arriba a la derecha) y “Volver a abrir el cuento” repiten la apertura.
+
 ## Estructura
 
 ```
 src/content/invitation.ts     ← contenido editable
-src/components/Opening.tsx    ← apertura cinematográfica (cinta + globo)
+src/three/                    ← escena 3D: libro, cinta de raso, texturas
+src/components/Opening.tsx    ← orquesta la apertura (3D → acuarela → globo)
 src/components/chapters/      ← capítulos I–VIII
 src/components/illustrations/ ← ilustraciones SVG en acuarela + filtros
 src/audio/musicBox.ts         ← caja musical original (Web Audio)

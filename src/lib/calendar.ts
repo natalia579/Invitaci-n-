@@ -4,11 +4,12 @@ const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/,
 
 /** Descarga un archivo .ics (en iPhone/iPad abre directamente Calendario). */
 export function downloadIcs() {
-  const c = invitation.chapter3;
-  const v = invitation.chapter4;
+  const c = invitation.chapter4;
+  const v = invitation.chapter5;
   const start = new Date(c.isoDateTime);
   const end = new Date(start.getTime() + c.durationHours * 3600 * 1000);
   const location = [v.venueName, v.address].filter(Boolean).join(', ');
+  const esc = (s: string) => s.replace(/([,;])/g, '\\$1');
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -19,8 +20,9 @@ export function downloadIcs() {
     `DTSTAMP:${fmt(new Date())}`,
     `DTSTART:${fmt(start)}`,
     `DTEND:${fmt(end)}`,
-    `SUMMARY:${c.calendarTitle}`,
-    location ? `LOCATION:${location.replace(/,/g, '\\,')}` : '',
+    `SUMMARY:${esc(c.calendarTitle)}`,
+    location ? `LOCATION:${esc(location)}` : '',
+    v.mapsUrl ? `URL:${v.mapsUrl}` : '',
     'END:VEVENT',
     'END:VCALENDAR',
   ].filter(Boolean);
