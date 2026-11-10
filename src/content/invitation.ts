@@ -76,10 +76,8 @@ export const invitation = {
   chapter4: {
     number: 'IV',
     label: 'Nuestro lugar de encuentro',
-    /** PENDIENTE: nombre del lugar. */
-    venueName: null as string | null,
-    /** PENDIENTE: dirección. */
-    address: null as string | null,
+    venueName: 'Orquideorama' as string | null,
+    address: 'Av. 2 Nte. #48, Olaya Herrera, Cali, Valle del Cauca' as string | null,
     /** PENDIENTE: enlace de Google Maps (p. ej. https://maps.app.goo.gl/...). */
     mapsUrl: 'https://maps.app.goo.gl/BF4CZeqT5JXgYqsJ8' as string | null,
     directionsButton: 'Cómo llegar',
