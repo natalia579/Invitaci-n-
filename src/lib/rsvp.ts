@@ -1,6 +1,6 @@
 import { invitation } from '../content/invitation';
 
-export type RsvpData = { name: string; attending: boolean; guests: number };
+export type RsvpData = { name: string; attending: boolean };
 
 /** ¿Hay un servicio real configurado para guardar confirmaciones? */
 export const rsvpStorageConfigured = Boolean(invitation.rsvp.endpoint);
@@ -16,7 +16,6 @@ export async function submitRsvp(data: RsvpData): Promise<boolean> {
   const payload = {
     nombre: data.name,
     asiste: data.attending ? 'Sí' : 'No',
-    asistentes: data.attending ? data.guests : 0,
     fecha: new Date().toISOString(),
   };
   try {
@@ -46,8 +45,7 @@ export function whatsappUrl(data: RsvpData): string | null {
   const n = invitation.rsvp.whatsappNumber?.replace(/\D/g, '');
   if (!n) return null;
   const c = invitation.chapter7;
-  const guests = `${data.guests} ${data.guests === 1 ? 'persona' : 'personas'}`;
-  const attending = data.attending ? c.whatsappYes.replace('{guests}', guests) : c.whatsappNo;
+  const attending = data.attending ? c.whatsappYes : c.whatsappNo;
   const text = c.whatsappTemplate.replace('{name}', data.name.trim()).replace('{attending}', attending);
   return `https://wa.me/${n}?text=${encodeURIComponent(text)}`;
 }

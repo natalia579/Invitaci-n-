@@ -14,8 +14,8 @@ export default {
       },
       fontFamily: {
         display: ['"Cormorant Garamond"', 'Garamond', 'Georgia', 'serif'],
-        serif: ['"EB Garamond"', 'Garamond', 'Georgia', 'serif'],
-        sans: ['Jost', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        serif: ['Montserrat', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        sans: ['Montserrat', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
       letterSpacing: { label: '0.32em' },
     },

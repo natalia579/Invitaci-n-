@@ -11,12 +11,11 @@ export function ChapterSeven() {
   const c = invitation.chapter7;
   const [name, setName] = useState('');
   const [attending, setAttending] = useState<boolean | null>(null);
-  const [guests, setGuests] = useState(1);
   const [status, setStatus] = useState<Status>('idle');
   const [touched, setTouched] = useState(false);
 
   const valid = name.trim().length > 1 && attending !== null;
-  const data = { name, attending: attending ?? false, guests };
+  const data = { name, attending: attending ?? false };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,48 +115,6 @@ export function ChapterSeven() {
                     <p className="mt-2 font-serif text-sm italic text-cafe">Por favor elige una opción.</p>
                   )}
                 </fieldset>
-
-                {/* Número de asistentes */}
-                <AnimatePresence initial={false}>
-                  {attending !== false && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <span id="rsvp-guests-label" className="label block text-cafe">
-                        {c.fields.guests}
-                      </span>
-                      <div className="mt-3 flex items-center justify-between gap-4">
-                        <span className="font-serif text-sm italic text-cafe/80">{c.fields.guestsHelp}</span>
-                        <div className="flex items-center gap-4" role="group" aria-labelledby="rsvp-guests-label">
-                          <button
-                            type="button"
-                            className="stepper"
-                            onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                            aria-label="Menos asistentes"
-                            disabled={guests <= 1}
-                          >
-                            −
-                          </button>
-                          <output aria-live="polite" className="w-8 text-center font-display text-3xl lining-nums text-cocoa">
-                            {guests}
-                          </output>
-                          <button
-                            type="button"
-                            className="stepper"
-                            onClick={() => setGuests((g) => Math.min(c.maxGuests, g + 1))}
-                            aria-label="Más asistentes"
-                            disabled={guests >= c.maxGuests}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
                 {/* Acciones */}
                 <div className="flex flex-col items-center gap-3 pt-2">

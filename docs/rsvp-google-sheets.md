@@ -1,13 +1,13 @@
 # Guardar confirmaciones en Google Sheets (gratis)
 
-1. Crea una hoja de cálculo en Google Sheets con encabezados: `fecha | nombre | asiste | asistentes`.
+1. Crea una hoja de cálculo en Google Sheets con encabezados: `fecha | nombre | asiste`.
 2. Menú **Extensiones → Apps Script**, pega este código y guarda:
 
 ```js
 function doPost(e) {
   const data = JSON.parse(e.postData.contents);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  sheet.appendRow([data.fecha, data.nombre, data.asiste, data.asistentes]);
+  sheet.appendRow([data.fecha, data.nombre, data.asiste]);
   return ContentService.createTextOutput(JSON.stringify({ ok: true }))
     .setMimeType(ContentService.MimeType.JSON);
 }

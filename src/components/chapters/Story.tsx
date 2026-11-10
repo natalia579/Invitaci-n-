@@ -274,8 +274,23 @@ export function ChapterFive() {
             {c.title}
           </h2>
           <Ornament className="relative mx-auto my-5 w-32" />
-          <p className="relative font-display text-[1.75rem] italic leading-snug text-cocoa">{c.quote}</p>
-          <p className="relative mt-5 font-serif text-[1.05rem] leading-relaxed text-cafe">{c.note}</p>
+          <div className="relative flex flex-col gap-6">
+            {c.quotes.map((q) => (
+              <p key={q.who} className="flex flex-col items-center gap-1">
+                <span className="font-serif text-[0.95rem] text-cafe">{q.who}</span>
+                <span
+                  className={
+                    q.emphasis
+                      ? 'font-display text-[2.1rem] italic leading-tight text-cocoa'
+                      : 'font-display text-[1.45rem] italic leading-snug text-cocoa'
+                  }
+                >
+                  {q.what}
+                </span>
+              </p>
+            ))}
+          </div>
+          {c.heart && <Heart className="relative mx-auto mt-6 w-6" />}
         </div>
       </Reveal>
     </Chapter>
@@ -368,6 +383,18 @@ export function ChapterEight() {
 }
 
 /* ───────────────────────────── Iconos ───────────────────────────── */
+function Heart({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 22" className={className} aria-hidden>
+      <path
+        d="M12 20.5C6.2 16.2 2.5 12.9 2.5 8.4 2.5 5.2 4.9 3 7.7 3c1.9 0 3.4 1 4.3 2.5C12.9 4 14.4 3 16.3 3c2.8 0 5.2 2.2 5.2 5.4 0 4.5-3.7 7.8-9.5 12.1z"
+        fill="#6B5143"
+        filter="url(#wc-wash)"
+      />
+    </svg>
+  );
+}
+
 function PinIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden>

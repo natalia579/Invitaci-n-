@@ -79,5 +79,5 @@ export function Pending({ children = 'Pendiente' }: { children?: React.ReactNode
 }
 
 export function Body({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <p className={`font-serif text-[1.12rem] leading-[1.75] text-cocoa/90 sm:text-[1.2rem] ${className}`}>{children}</p>;
+  return <p className={`font-serif text-[0.98rem] font-light leading-[1.85] text-cocoa/90 sm:text-[1.05rem] ${className}`}>{children}</p>;
 }

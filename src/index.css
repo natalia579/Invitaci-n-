@@ -40,11 +40,12 @@ body {
   background-color: var(--ivory);
   background-image: var(--mottle), var(--linen);
   background-size: 600px 600px, auto;
-  font-family: 'EB Garamond', Garamond, Georgia, serif;
+  font-family: Montserrat, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
-  font-feature-settings: 'liga', 'kern', 'onum';
+  font-feature-settings: 'liga', 'kern';
 }
 
 ::selection {
@@ -92,7 +93,7 @@ body {
 
 /* ───────────────────────── Tipografía ───────────────────────── */
 .label {
-  font-family: Jost, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Montserrat, 'Helvetica Neue', Arial, sans-serif;
   font-size: 0.66rem;
   font-weight: 400;
   letter-spacing: 0.32em;
@@ -239,7 +240,7 @@ body {
   gap: 0.6rem;
   min-height: 50px;
   padding: 0.85rem 1.9rem;
-  font-family: Jost, sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -266,7 +267,7 @@ body {
   gap: 0.55rem;
   min-height: 44px;
   padding: 0.7rem 1.4rem;
-  font-family: Jost, sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.68rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -391,7 +392,7 @@ body {
 .music-pill {
   min-height: 36px;
   padding: 0.45rem 0.95rem;
-  font-family: Jost, sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 0.6rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;

@@ -16,7 +16,7 @@ export const invitation = {
   meta: {
     /** Muestra etiquetas “Pendiente” en los datos que faltan. Pon `false` antes de publicar. */
     showPendingMarkers: true,
-    hosts: 'Natali y Santi',
+    hosts: 'Natali y Santiago',
   },
 
   /** Rutas a ilustraciones propias en acuarela (dentro de /public/illustrations).
@@ -24,10 +24,10 @@ export const invitation = {
   illustrations: {
     balloon: null as string | null, // p. ej. 'illustrations/globo.png'
     cloud: null as string | null,
-    rockingHorse: null as string | null,
+    rockingHorse: 'illustrations/caballito.png' as string | null,
     giftBox: null as string | null,
     stork: null as string | null,
-    venue: null as string | null, // ilustración del lugar (pendiente)
+    venue: 'illustrations/lugar.jpg' as string | null, // ilustración del lugar
   },
 
   opening: {
@@ -70,7 +70,7 @@ export const invitation = {
     countdownLabels: { days: 'Días', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos' },
     countdownDone: '¡Hoy comienza nuestra historia!',
     addToCalendar: 'Agregar al calendario',
-    calendarTitle: 'Gender Reveal & Baby Shower · Natali y Santi',
+    calendarTitle: 'Gender Reveal & Baby Shower · Natali y Santiago',
   },
 
   chapter4: {
@@ -81,7 +81,7 @@ export const invitation = {
     /** PENDIENTE: dirección. */
     address: null as string | null,
     /** PENDIENTE: enlace de Google Maps (p. ej. https://maps.app.goo.gl/...). */
-    mapsUrl: null as string | null,
+    mapsUrl: 'https://maps.app.goo.gl/BF4CZeqT5JXgYqsJ8' as string | null,
     directionsButton: 'Cómo llegar',
     venueNameFallback: 'Lugar por confirmar',
     addressFallback: 'Muy pronto compartiremos la dirección',
@@ -92,9 +92,13 @@ export const invitation = {
     number: 'V',
     label: 'Dress Code',
     title: 'Dress Code',
-    quote: 'Como diría Santi: All Money.',
-    /** Frase complementaria — edítala libremente. */
-    note: 'Tu mejor versión, con un toque de elegancia de otra época: telas lindas, colores suaves y ese detalle que guardas para las ocasiones que valen la pena.',
+    /** Cada línea: quién lo dice + qué dice. */
+    quotes: [
+      { who: 'Como diría Santiago:', what: 'Old Money.', emphasis: true },
+      { who: 'Como diría Natali:', what: 'ponte bien lindo y ven a celebrar con nosotros.', emphasis: false },
+    ],
+    /** Muestra un pequeño corazón café ilustrado al final. */
+    heart: true,
   },
 
   chapter6: {
@@ -118,10 +122,7 @@ export const invitation = {
       attending: '¿Nos acompañas?',
       yes: 'Sí, ahí estaré',
       no: 'No podré asistir',
-      guests: 'Número de asistentes',
-      guestsHelp: 'Incluyéndote a ti',
     },
-    maxGuests: 6,
     submit: 'Enviar confirmación',
     submitWhatsApp: 'Confirmar por WhatsApp',
     orWhatsApp: 'o confirmar por WhatsApp',
@@ -130,9 +131,9 @@ export const invitation = {
     successNo: 'Gracias por avisarnos. Te llevaremos en el corazón ese día.',
     error: 'No pudimos guardar tu respuesta. Intenta de nuevo o confírmanos por WhatsApp.',
     whatsappPending: 'El número de WhatsApp aún no está configurado.',
-    /** Mensaje que se envía por WhatsApp. {name}, {attending} y {guests} se reemplazan. */
-    whatsappTemplate: 'Hola Natali y Santi, soy {name}. {attending}',
-    whatsappYes: '¡Confirmo mi asistencia al Gender Reveal & Baby Shower! Asistiremos {guests}.',
+    /** Mensaje que se envía por WhatsApp. {name} y {attending} se reemplazan. */
+    whatsappTemplate: 'Hola Natali y Santiago, soy {name}. {attending}',
+    whatsappYes: '¡Confirmo mi asistencia al Gender Reveal & Baby Shower! Ahí estaré.',
     whatsappNo: 'Lamentablemente no podré asistir al Gender Reveal & Baby Shower, pero les envío todo mi cariño.',
   },
 
@@ -144,7 +145,7 @@ export const invitation = {
       'Gracias por ser parte de la nuestra.',
     ],
     signoff: 'Con amor,',
-    signature: 'Natali y Santi',
+    signature: 'Natali y Santiago',
     fin: 'Fin',
   },
 
@@ -159,8 +160,8 @@ export const invitation = {
      */
     endpoint: (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined) || null,
     provider: 'google-apps-script' as 'google-apps-script' | 'formspree',
-    /** Número de WhatsApp con indicativo y sin signos, p. ej. '573001234567' (PENDIENTE). */
-    whatsappNumber: (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || null,
+    /** WhatsApp de Santiago (+57 300 7512688), con indicativo y sin signos. */
+    whatsappNumber: (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || '573007512688',
   },
 
   music: {
