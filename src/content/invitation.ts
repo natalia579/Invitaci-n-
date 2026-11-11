@@ -148,8 +148,10 @@ export const invitation = {
 
   /** Servicio de confirmaciones (Google Apps Script). Ver docs/confirmaciones-google-sheets.md */
   rsvp: {
-    /** PENDIENTE: URL de la aplicación web de Apps Script (termina en /exec). */
-    endpoint: (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined) || null,
+    /** Aplicación web de Apps Script conectada a la hoja privada de Nati. */
+    endpoint:
+      (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined) ||
+      'https://script.google.com/macros/s/AKfycbwPXcpZ74pwNUtzgBixxCttu6UG7pf43YpsdcpP_yRcxpPpTTAdINjPB7PlDQt9moRp1w/exec',
   },
 
   music: {
