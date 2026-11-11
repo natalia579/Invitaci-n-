@@ -12,7 +12,7 @@ type Status = 'loading' | 'form' | 'sending' | 'saved' | 'error' | 'no-link' | '
 export function RsvpSection() {
   const t = invitation.rsvpText;
   const [id] = useState(() => inviteIdFromUrl());
-  const [status, setStatus] = useState<Status>(() => (!rsvpConfigured() ? 'not-configured' : !id ? 'no-link' : 'loading'));
+  const [status, setStatus] = useState<Status>(() => (!rsvpConfigured() ? 'not-configured' : !id ? 'form' : 'loading'));
   const [name, setName] = useState('');
   const [attending, setAttending] = useState<Attending | null>(null);
   const [saved, setSaved] = useState<Attending | null>(null);
@@ -41,7 +41,7 @@ export function RsvpSection() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
-    if (!valid || !id || !attending) return;
+    if (!valid || !attending) return;
     setStatus('sending');
     const ok = await saveRsvp(id, name, attending);
     if (ok) {
@@ -52,7 +52,7 @@ export function RsvpSection() {
     }
   };
 
-  const formDisabled = status === 'no-link' || status === 'unknown' || status === 'not-configured';
+  const formDisabled = status === 'unknown' || status === 'not-configured';
 
   return (
     <Chapter
@@ -145,7 +145,6 @@ export function RsvpSection() {
                       {t.error}
                     </p>
                   )}
-                  {status === 'no-link' && <p className="text-center font-serif text-sm italic text-cafe">{t.noLink}</p>}
                   {status === 'unknown' && <p className="text-center font-serif text-sm italic text-cafe">{t.unknownLink}</p>}
                   {status === 'not-configured' && <Pending>{t.notConfigured}</Pending>}
                 </div>

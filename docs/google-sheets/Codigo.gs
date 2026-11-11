@@ -41,7 +41,13 @@ function doGet(e) {
   return json_({ ok: true, name: String(v[COL.NOMBRE - 1] || ''), attending: aApi_(v[COL.ASISTENCIA - 1]) });
 }
 
-/** POST { id, name, attending: 'yes' | 'no' } → guarda o actualiza la respuesta. */
+/**
+ * POST { name, attending: 'yes' | 'no', id? } → guarda o actualiza la respuesta.
+ *  · Con enlace general (sin id): se busca al invitado por su nombre (sin tildes ni
+ *    mayúsculas). Si ya está en la lista o ya respondió, se actualiza esa fila;
+ *    si no, se agrega una fila nueva. Así no hay duplicados.
+ *  · Con enlace personal (id): se actualiza la fila de ese código.
+ */
 function doPost(e) {
   let data;
   try {
@@ -49,17 +55,23 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: 'bad_request' });
   }
-  const id = limpiarId_(data && data.id);
   const asistencia = data && data.attending === 'yes' ? 'Sí' : data && data.attending === 'no' ? 'No' : null;
   const nombre = String((data && data.name) || '').replace(/\s+/g, ' ').trim().slice(0, 120);
-  if (!id || !asistencia || nombre.length < 3) return json_({ ok: false, error: 'bad_request' });
+  const traeId = data && data.id !== undefined && data.id !== null && data.id !== '';
+  const id = traeId ? limpiarId_(data.id) : null;
+  if (!asistencia || nombre.length < 3 || (traeId && !id)) return json_({ ok: false, error: 'bad_request' });
 
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const fila = buscarFila_(id);
-    if (!fila) return json_({ ok: false, error: 'not_found' });
     const sh = hoja_(HOJA_INVITADOS);
+    let fila = id ? buscarFila_(id) : buscarPorNombre_(nombre);
+    if (id && !fila) return json_({ ok: false, error: 'not_found' });
+    if (!fila) {
+      fila = Math.max(2, sh.getLastRow() + 1);
+      sh.getRange(fila, COL.NOMBRE).setValue(nombre);
+      completarCodigos_(sh, fila, 1);
+    }
     const anterior = sh.getRange(fila, COL.ASISTENCIA).getValue();
     const cambios = Number(sh.getRange(fila, COL.CAMBIOS).getValue()) || 0;
     const nuevosCambios = anterior && anterior !== asistencia ? cambios + 1 : cambios;
@@ -68,6 +80,29 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/** Busca una fila por nombre de la lista (col. A) o por el nombre que escribió (col. E). */
+function buscarPorNombre_(nombre) {
+  const sh = hoja_(HOJA_INVITADOS);
+  const n = sh.getLastRow() - 1;
+  if (n < 1) return 0;
+  const buscado = normalizar_(nombre);
+  const filas = sh.getRange(2, 1, n, COL.NOMBRE_ESCRITO).getValues();
+  for (let i = 0; i < filas.length; i++) {
+    if (normalizar_(filas[i][COL.NOMBRE - 1]) === buscado || normalizar_(filas[i][COL.NOMBRE_ESCRITO - 1]) === buscado) return i + 2;
+  }
+  return 0;
+}
+
+function normalizar_(v) {
+  return String(v || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-zñ0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /* ═══════════════════════════ Automatización de la hoja ═══════════════════════════ */

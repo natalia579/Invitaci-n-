@@ -165,8 +165,31 @@ function runTests() {
   check('no se puede registrar a nadie sin un código válido', () => {
     const before = t.rows().length;
     assert.equal(t.post({ id: '0'.repeat(32), name: 'Intruso Falso', attending: 'yes' }).error, 'not_found');
-    assert.equal(t.post({ name: 'Sin Código', attending: 'yes' }).error, 'bad_request');
+    assert.equal(t.post({ id: 'abc', name: 'Código Malo', attending: 'yes' }).error, 'bad_request');
     assert.equal(t.rows().length, before);
+  });
+  check('enlace general: un invitado nuevo escribe su nombre y queda guardado', () => {
+    const before = t.rows().length;
+    assert.deepEqual(t.post({ name: 'Elena Restrepo', attending: 'yes' }), { ok: true, attending: 'yes' });
+    const rows = t.rows();
+    assert.equal(rows.length, before + 1);
+    const r = rows.find((x) => x[0] === 'Elena Restrepo');
+    assert.equal(r[3], 'Sí');
+    assert.match(r[1], /^[a-f0-9]{32}$/);
+  });
+  check('enlace general: si vuelve a responder (con otras mayúsculas/tildes) se actualiza su fila', () => {
+    const before = t.rows().length;
+    t.post({ name: '  elena   RESTREPO ', attending: 'no' });
+    assert.equal(t.rows().length, before);
+    assert.equal(t.rows().find((x) => x[0] === 'Elena Restrepo')[3], 'No');
+  });
+  check('enlace general: si ya estaba en tu lista, responde en su misma fila (sale de pendientes)', () => {
+    const before = t.rows().length;
+    t.post({ name: 'Carla Diaz', attending: 'yes' });
+    assert.equal(t.rows().length, before);
+    assert.equal(t.rows()[2][3], 'Sí');
+    t.post({ id: carla, name: 'Carla Díaz', attending: 'no' }); // vuelve a dejarla como estaba para las demás pruebas
+    t.ss.getSheetByName('Invitados').getRange(4, 4, 1, 4).setValues([['', '', '', 0]]);
   });
   check('datos inválidos se rechazan', () => {
     assert.equal(t.post({ id: carla, name: 'Carla', attending: 'quizás' }).error, 'bad_request');
@@ -179,7 +202,7 @@ function runTests() {
     const pend = rows.filter((r) => r[0] && !r[3]).map((r) => r[0]);
     assert.deepEqual(pend, ['Carla Díaz']);
     assert.equal(rows.filter((r) => r[3] === 'Sí').length, 1);
-    assert.equal(rows.filter((r) => r[3] === 'No').length, 1);
+    assert.equal(rows.filter((r) => r[3] === 'No').length, 2); // Beto y Elena
   });
   check('pegar una lista y generar códigos faltantes', () => {
     const sh = t.ss.getSheetByName('Invitados');

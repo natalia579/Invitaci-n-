@@ -4,7 +4,9 @@ import { invitation } from '../content/invitation';
  * Confirmaciones individuales conectadas a Google Sheets a través de una
  * aplicación web de Google Apps Script (docs/google-sheets/Codigo.gs).
  *
- *  · Cada invitado tiene un enlace con un código aleatorio: ?i=XXXXXXXX…
+ *  · Enlace general: el invitado escribe su nombre; la hoja lo empareja con la lista
+ *    (sin tildes ni mayúsculas) o lo agrega, sin duplicar.
+ *  · Enlace personal opcional con código aleatorio: ?i=XXXXXXXX…
  *  · El navegador NUNCA tiene credenciales de Google: sólo envía el código y la respuesta.
  *  · Con un código sólo se puede leer/cambiar la respuesta de esa invitación.
  *  · Nunca se muestra “guardado” si el servicio no lo confirmó.
@@ -48,7 +50,7 @@ export async function fetchInvite(id: string): Promise<InviteInfo | 'not_found' 
 }
 
 /** Guarda (o cambia) la respuesta. Sólo devuelve true si Google Sheets confirmó el guardado. */
-export async function saveRsvp(id: string, name: string, attending: Attending): Promise<boolean> {
+export async function saveRsvp(id: string | null, name: string, attending: Attending): Promise<boolean> {
   const endpoint = invitation.rsvp.endpoint;
   if (!endpoint) return false;
   try {
@@ -58,7 +60,7 @@ export async function saveRsvp(id: string, name: string, attending: Attending): 
         method: 'POST',
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ id, name: name.trim(), attending }),
+        body: JSON.stringify(id ? { id, name: name.trim(), attending } : { name: name.trim(), attending }),
       }),
     );
     if (!res.ok) return false;
