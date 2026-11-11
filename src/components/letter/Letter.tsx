@@ -1,66 +1,30 @@
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { invitation } from '../../content/invitation';
-import { RockingHorse } from '../illustrations/RockingHorse';
 import { Sparkle, Star } from '../illustrations/Sky';
-import { Stork } from '../illustrations/Objects';
 import { EASE } from '../ui';
 
 /**
  * LA CARTA (continuación del papel que se desplegó en la apertura).
- * Una sola pieza: mismo papel, mismos filetes dorados a los lados, sin títulos.
- * Cada párrafo aparece al llegar a él; las frases con protagonismo respiran
- * más y tienen tipografía mayor. Las ilustraciones viven en los márgenes.
+ * Corta y sobria: un párrafo, la frase protagonista y la firma.
+ * Mismo papel y mismos filetes dorados; sin títulos.
  */
 export function Letter() {
   const L = invitation.letter;
-  const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const storkX = useTransform(scrollYProgress, [0.15, 0.6], reduce ? ['0%', '0%'] : ['60%', '-140%']);
-  const storkY = useTransform(scrollYProgress, [0.15, 0.6], reduce ? ['0%', '0%'] : ['10%', '-30%']);
-
   return (
-    <section ref={ref} aria-label="Carta" className="letter-continue relative w-full">
+    <section aria-label="Carta" className="letter-continue relative w-full">
       {/* filetes dorados que continúan los de la carta abierta */}
       <span className="pointer-events-none absolute inset-y-0 left-[14px] w-px bg-gold/50" aria-hidden />
       <span className="pointer-events-none absolute inset-y-0 left-[19px] w-px bg-gold/25" aria-hidden />
       <span className="pointer-events-none absolute inset-y-0 right-[14px] w-px bg-gold/50" aria-hidden />
       <span className="pointer-events-none absolute inset-y-0 right-[19px] w-px bg-gold/25" aria-hidden />
 
-      <div className="relative mx-auto flex max-w-[31rem] flex-col px-10 pb-[4dvh] pt-[10dvh] sm:px-14">
-        {L.body.map((p, i) => {
-          const isFirstEmph = p.emphasis && !p.final;
-          return (
-            <div key={i} className={p.emphasis ? 'my-[13dvh] text-center' : 'my-[5.5dvh]'}>
-              {/* ilustraciones en el margen, acompañando — no interrumpen */}
-              {i === 1 && (
-                <motion.div
-                  className="pointer-events-none float-right -mr-4 mb-2 ml-3 mt-1 w-[38%] max-w-[170px]"
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 1.6, ease: EASE }}
-                  aria-hidden
-                >
-                  <div className="rock origin-[50%_88%]">
-                    <RockingHorse className="w-full" />
-                  </div>
-                </motion.div>
-              )}
-              {isFirstEmph && (
-                <motion.div className="pointer-events-none relative h-0" style={{ x: storkX, y: storkY }} aria-hidden>
-                  <Stork className="stork-fly absolute -top-[16dvh] right-0 w-[46%] max-w-[200px] opacity-80" />
-                </motion.div>
-              )}
-              {p.emphasis ? (
-                <Emphasis text={p.text} final={p.final} />
-              ) : (
-                <Paragraph text={p.text} />
-              )}
-            </div>
-          );
-        })}
+      <div className="relative mx-auto flex max-w-[31rem] flex-col px-10 pb-[6dvh] pt-[6dvh] sm:px-14">
+        {L.body.map((p, i) => (
+          <div key={i} className={p.emphasis ? 'my-[9dvh] text-center' : 'my-[4dvh] text-center'}>
+            {p.emphasis ? <Emphasis text={p.text} final={p.final} /> : <Paragraph text={p.text} />}
+          </div>
+        ))}
+        <Signature signoff={L.signoff} name={L.signature} />
       </div>
     </section>
   );
@@ -70,18 +34,18 @@ function Paragraph({ text }: { text: string }) {
   const reduce = useReducedMotion();
   return (
     <motion.p
-      className="letter-body font-serif text-[1.06rem] font-light leading-[1.95] text-cocoa sm:text-[1.14rem]"
+      className="letter-body font-serif text-[1.08rem] font-light leading-[1.9] text-cocoa sm:text-[1.16rem]"
       initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18, filter: 'blur(5px)' }}
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, amount: 0.6 }}
-      transition={{ duration: 1.5, ease: EASE }}
+      transition={{ duration: 1.4, ease: EASE }}
     >
       {text}
     </motion.p>
   );
 }
 
-/** Frases con protagonismo: palabra por palabra, con ornamento propio. */
+/** Frase protagonista: palabra por palabra, con ornamento propio. */
 function Emphasis({ text, final }: { text: string; final?: boolean }) {
   const reduce = useReducedMotion();
   const words = text.split(' ');
@@ -96,14 +60,7 @@ function Emphasis({ text, final }: { text: string; final?: boolean }) {
         {final ? <Star className="w-4" /> : <Sparkle className="w-3.5" />}
         <span className="h-px w-10 bg-gold/60" />
       </motion.div>
-      <p
-        className={
-          final
-            ? 'font-display text-[2.05rem] font-normal italic leading-[1.22] text-cocoa sm:text-[2.5rem]'
-            : 'font-display text-[2.35rem] font-normal italic leading-[1.15] text-cocoa sm:text-[2.8rem]'
-        }
-        aria-label={text}
-      >
+      <p className="font-display text-[2.3rem] font-normal italic leading-[1.18] text-cocoa sm:text-[2.8rem]" aria-label={text}>
         {words.map((w, i) => (
           <motion.span
             key={i}
@@ -118,17 +75,30 @@ function Emphasis({ text, final }: { text: string; final?: boolean }) {
           </motion.span>
         ))}
       </p>
-      {final && (
-        <motion.div
-          className="mt-8 flex justify-center gap-6"
-          variants={{ h: { opacity: 0 }, s: { opacity: 1, transition: { duration: 1.4, delay: 0.25 + words.length * 0.09 } } }}
-          aria-hidden
-        >
-          <Sparkle className="twinkle w-3" />
-          <Sparkle className="twinkle twinkle-d2 w-2.5" />
-          <Sparkle className="twinkle twinkle-d1 w-3" />
-        </motion.div>
-      )}
+      <motion.div
+        className="mt-8 flex justify-center gap-6"
+        variants={{ h: { opacity: 0 }, s: { opacity: 1, transition: { duration: 1.4, delay: 0.25 + words.length * 0.09 } } }}
+        aria-hidden
+      >
+        <Sparkle className="twinkle w-3" />
+        <Sparkle className="twinkle twinkle-d2 w-2.5" />
+        <Sparkle className="twinkle twinkle-d1 w-3" />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function Signature({ signoff, name }: { signoff: string; name: string }) {
+  return (
+    <motion.div
+      className="mb-[2dvh] flex flex-col items-center text-center"
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.8 }}
+      transition={{ duration: 1.3, ease: EASE }}
+    >
+      <span className="font-serif text-[1rem] font-light italic text-cafe">{signoff}</span>
+      <span className="mt-1 font-display text-[2.4rem] italic leading-tight text-cocoa">{name}</span>
     </motion.div>
   );
 }

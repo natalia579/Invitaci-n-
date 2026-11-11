@@ -323,7 +323,7 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
                     <Balloon className="w-full" />
                   </div>
                 </motion.div>
-                <Words text={invitation.letter.opening.lead} show={textStage >= 1} className="max-w-[20rem] font-display text-[2.3rem] font-normal italic leading-[1.18] text-cocoa sm:text-[2.8rem]" />
+                <Words text={invitation.letter.opening.lead} show={textStage >= 1} className="max-w-[21rem] font-display text-[1.85rem] font-normal italic leading-[1.25] text-cocoa sm:text-[2.3rem]" />
                 <motion.span
                   className="my-7 block h-px w-16 bg-gold/70"
                   initial={{ scaleX: 0 }}

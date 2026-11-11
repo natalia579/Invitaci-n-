@@ -48,17 +48,15 @@ export const invitation = {
    */
   letter: {
     opening: {
-      lead: 'Hay cosas que no se planean…',
-      follow: 'Y terminan siendo las que más ilusión nos hacen.',
+      lead: 'Hay momentos que se vuelven aún más especiales cuando los compartimos con las personas que queremos.',
+      follow: 'Y este es uno de ellos.',
     },
     body: [
-      { text: 'Hoy estamos viviendo uno de esos momentos que todavía no sabemos muy bien cómo contar, pero que nos morimos de ganas de compartir con las personas que más queremos.' },
-      { text: 'Entre tantos planes, la vida nos sorprendió con uno que no teníamos escrito. Y aquí estamos, esperando a alguien que todavía no conocemos, pero que ya nos tiene el corazón llenito de ilusión.' },
-      { text: 'Y aunque esta historia apenas comienza, hay algo que tenemos muy claro: queremos vivirla rodeados de las personas que han sido parte de la nuestra.' },
-      { text: 'Por eso, esta carta es para ti.', emphasis: true },
-      { text: 'Porque eres una de esas personas que queremos tener cerquita, que hacen más bonitos los momentos importantes y con quienes nos emociona imaginar los recuerdos que vienen.' },
-      { text: 'Tenemos una sorpresa por descubrir y muchísimas ganas de celebrarla contigo.', emphasis: true, final: true },
+      { text: 'Estamos preparando un día muy especial para celebrar la llegada de nuestro bebé, y nos haría muchísima ilusión que fueras parte de él.' },
+      { text: 'Porque hay recuerdos que queremos construir contigo.', emphasis: true, final: true },
     ] as { text: string; emphasis?: boolean; final?: boolean }[],
+    signoff: 'Con cariño,',
+    signature: 'Nati y Santi.',
   },
 
   /** La revelación: el momento en que se entiende qué celebramos. */
