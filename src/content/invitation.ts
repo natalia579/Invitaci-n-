@@ -14,7 +14,7 @@
 export const invitation = {
   meta: {
     /** Muestra etiquetas “Pendiente” en los datos que faltan. Pon `false` antes de publicar. */
-    showPendingMarkers: true,
+    showPendingMarkers: false,
     /** Nombres de los papás: SOLO aparecen en la firma final. */
     signature: 'Nati y Santi',
   },
