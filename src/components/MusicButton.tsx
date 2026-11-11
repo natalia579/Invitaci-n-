@@ -4,7 +4,7 @@ import { useMusic } from '../hooks/useMusic';
 
 /** Botón discreto para activar / silenciar la música. */
 export function MusicButton({ visible, onReplay }: { visible: boolean; onReplay: () => void }) {
-  const { playing, blocked, toggle } = useMusic();
+  const { available, playing, blocked, toggle } = useMusic();
   const m = invitation.music;
   return (
     <AnimatePresence>
@@ -17,7 +17,7 @@ export function MusicButton({ visible, onReplay }: { visible: boolean; onReplay:
           transition={{ duration: 0.9 }}
         >
           <AnimatePresence>
-            {blocked && !playing && (
+            {available && blocked && !playing && (
               <motion.button
                 type="button"
                 data-music-toggle
@@ -37,6 +37,7 @@ export function MusicButton({ visible, onReplay }: { visible: boolean; onReplay:
               <path d="M3.8 6.4 12 13l8.2-6.6" />
             </svg>
           </button>
+          {available && (
           <button
             type="button"
             data-music-toggle
@@ -57,6 +58,7 @@ export function MusicButton({ visible, onReplay }: { visible: boolean; onReplay:
               </span>
             )}
           </button>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

@@ -18,12 +18,9 @@ npm run preview    # sirve /dist
 [`src/content/invitation.ts`](src/content/invitation.ts). No hace falta tocar los componentes.
 
 ### Datos pendientes (marcados con `null`)
-- `chapter4.venueName`, `chapter4.address`, `chapter4.mapsUrl` — lugar, dirección y enlace de Google Maps.
-- `illustrations.venue` — ilustración en acuarela del lugar.
-- `rsvp.whatsappNumber` — número para confirmar por WhatsApp (formato `573001234567`).
-- `rsvp.endpoint` — servicio para guardar confirmaciones ([guía Google Sheets](docs/rsvp-google-sheets.md)).
-- `music.src` — opcional: canción propia o con licencia.
-- `chapter7.deadline` — opcional: fecha límite para confirmar.
+- `rsvp.endpoint` — URL de Apps Script para guardar confirmaciones ([guía para iPad](docs/confirmaciones-google-sheets.md)).
+- `questions.whatsappNumber` — número para el botón “Escríbenos por WhatsApp”.
+- `music.src` — grabación autorizada de *Clair de Lune* (ver `public/audio/README.md`).
 
 Mientras `meta.showPendingMarkers` sea `true`, la página muestra etiquetas “Pendiente”.
 **Antes de publicar**, completa los datos y cámbialo a `false`.
@@ -39,6 +36,14 @@ Mientras `meta.showPendingMarkers` sea `true`, la página muestra etiquetas “P
 El cielo y las nubes se pintan en el navegador (`src/opening/paint.ts`); el sobre, el lacre y la
 carta están en `src/opening/Envelope.tsx`. El globo y el cielo se pueden reemplazar por arte
 propio en `invitation.illustrations.balloon` y `openingSky`.
+
+## Probar las confirmaciones sin cuenta de Google
+
+```bash
+node tools/rsvp-mock.mjs test     # pruebas automáticas del script de Google Sheets
+node tools/rsvp-mock.mjs serve    # simulador local en http://localhost:8787/exec
+VITE_RSVP_ENDPOINT=http://localhost:8787/exec npm run dev
+```
 
 ## Estructura
 

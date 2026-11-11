@@ -4,8 +4,8 @@ const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/,
 
 /** Descarga un archivo .ics (en iPhone/iPad abre directamente Calendario). */
 export function downloadIcs() {
-  const c = invitation.chapter4;
-  const v = invitation.chapter5;
+  const c = invitation.date;
+  const v = invitation.venue;
   const start = new Date(c.isoDateTime);
   const end = new Date(start.getTime() + c.durationHours * 3600 * 1000);
   const location = [v.venueName, v.address].filter(Boolean).join(', ');

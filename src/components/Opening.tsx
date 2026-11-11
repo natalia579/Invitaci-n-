@@ -299,14 +299,14 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
                 <span className="letter-crease absolute inset-x-0 top-2/3" />
               </motion.div>
               <motion.div
-                className="absolute inset-[14px] border border-gold/50"
+                className="absolute bottom-0 left-[14px] right-[14px] top-[14px] border border-b-0 border-gold/50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1.2, delay: 1.1 }}
                 aria-hidden
               />
               <motion.div
-                className="absolute inset-[19px] border border-gold/25"
+                className="absolute bottom-0 left-[19px] right-[19px] top-[19px] border border-b-0 border-gold/25"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1.2, delay: 1.25 }}
@@ -323,7 +323,7 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
                     <Balloon className="w-full" />
                   </div>
                 </motion.div>
-                <Words text={o.letterLine1} show={textStage >= 1} className="max-w-[20rem] font-display text-[2.05rem] font-light italic leading-[1.22] text-cocoa sm:text-[2.6rem]" />
+                <Words text={invitation.letter.opening.lead} show={textStage >= 1} className="max-w-[20rem] font-display text-[2.3rem] font-normal italic leading-[1.18] text-cocoa sm:text-[2.8rem]" />
                 <motion.span
                   className="my-7 block h-px w-16 bg-gold/70"
                   initial={{ scaleX: 0 }}
@@ -331,7 +331,7 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
                   transition={{ duration: 1, ease: EASE }}
                   aria-hidden
                 />
-                <Words text={o.letterLine2} show={textStage >= 2} className="max-w-[18rem] font-serif text-[1.02rem] font-light leading-relaxed text-cafe sm:text-[1.12rem]" />
+                <Words text={invitation.letter.opening.follow} show={textStage >= 2} className="max-w-[19rem] font-display text-[1.45rem] font-normal italic leading-snug text-cafe sm:text-[1.7rem]" />
               </div>
               <motion.div
                 className="pointer-events-none absolute inset-0"

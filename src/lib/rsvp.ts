@@ -1,56 +1,78 @@
 import { invitation } from '../content/invitation';
 
-export type RsvpData = { name: string; attending: boolean; guests?: number };
-
-/** ¿Hay un servicio real configurado para guardar confirmaciones? */
-export const rsvpStorageConfigured = Boolean(invitation.rsvp.endpoint);
-export const whatsappConfigured = Boolean(invitation.rsvp.whatsappNumber);
-
 /**
- * Envía la confirmación al servicio configurado.
- * Sólo devuelve `true` si el servicio respondió correctamente — nunca simula un guardado.
+ * Confirmaciones individuales conectadas a Google Sheets a través de una
+ * aplicación web de Google Apps Script (docs/google-sheets/Codigo.gs).
+ *
+ *  · Cada invitado tiene un enlace con un código aleatorio: ?i=XXXXXXXX…
+ *  · El navegador NUNCA tiene credenciales de Google: sólo envía el código y la respuesta.
+ *  · Con un código sólo se puede leer/cambiar la respuesta de esa invitación.
+ *  · Nunca se muestra “guardado” si el servicio no lo confirmó.
  */
-export async function submitRsvp(data: RsvpData): Promise<boolean> {
-  const { endpoint, provider } = invitation.rsvp;
-  if (!endpoint) return false;
-  const payload = {
-    nombre: data.name,
-    asiste: data.attending ? 'Sí' : 'No',
-    ...(data.guests ? { asistentes: data.attending ? data.guests : 0 } : {}),
-    fecha: new Date().toISOString(),
-  };
+
+export type Attending = 'yes' | 'no';
+export type InviteInfo = { name: string; attending: Attending | null };
+
+const ID_RE = /^[A-Za-z0-9]{20,40}$/;
+
+/** Código de invitación del enlace personal (?i=…). */
+export function inviteIdFromUrl(): string | null {
   try {
-    if (provider === 'formspree') {
-      const res = await fetch(endpoint, {
+    const url = new URL(window.location.href);
+    const raw = url.searchParams.get('i') ?? new URLSearchParams(url.hash.replace(/^#/, '')).get('i');
+    return raw && ID_RE.test(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+export const rsvpConfigured = () => Boolean(invitation.rsvp.endpoint);
+
+async function withTimeout<T>(p: Promise<T>, ms = 15000): Promise<T> {
+  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+}
+
+/** Lee el nombre y la respuesta actual de ESTA invitación. */
+export async function fetchInvite(id: string): Promise<InviteInfo | 'not_found' | 'error'> {
+  const endpoint = invitation.rsvp.endpoint;
+  if (!endpoint) return 'error';
+  try {
+    const res = await withTimeout(fetch(`${endpoint}?id=${encodeURIComponent(id)}`, { method: 'GET', redirect: 'follow' }));
+    if (!res.ok) return 'error';
+    const json = (await res.json()) as { ok?: boolean; error?: string; name?: string; attending?: Attending | null };
+    if (json.ok) return { name: String(json.name ?? ''), attending: json.attending ?? null };
+    return json.error === 'not_found' ? 'not_found' : 'error';
+  } catch {
+    return 'error';
+  }
+}
+
+/** Guarda (o cambia) la respuesta. Sólo devuelve true si Google Sheets confirmó el guardado. */
+export async function saveRsvp(id: string, name: string, attending: Attending): Promise<boolean> {
+  const endpoint = invitation.rsvp.endpoint;
+  if (!endpoint) return false;
+  try {
+    // text/plain = petición “simple”: Apps Script la acepta sin preflight CORS
+    const res = await withTimeout(
+      fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      return res.ok;
-    }
-    // Google Apps Script: petición “simple” (text/plain) para evitar preflight CORS.
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-    });
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ id, name: name.trim(), attending }),
+      }),
+    );
     if (!res.ok) return false;
-    const json = (await res.json().catch(() => null)) as { ok?: boolean } | null;
-    return json?.ok === true;
+    const json = (await res.json().catch(() => null)) as { ok?: boolean; attending?: string } | null;
+    return json?.ok === true && json.attending === attending;
   } catch {
     return false;
   }
 }
 
-export function whatsappUrl(data: RsvpData): string | null {
-  const n = invitation.rsvp.whatsappNumber?.replace(/\D/g, '');
+/** Enlace de WhatsApp para preguntas (canal privado; no se usa para confirmar). */
+export function whatsappQuestionUrl(): string | null {
+  const q = invitation.questions;
+  const n = q.whatsappNumber?.replace(/\D/g, '');
   if (!n) return null;
-  const c = invitation.chapter8;
-  const attending = !data.attending
-    ? c.whatsappNo
-    : data.guests
-      ? c.whatsappYesGuests.replace('{guests}', `${data.guests} ${data.guests === 1 ? 'persona' : 'personas'}`)
-      : c.whatsappYes;
-  const text = c.whatsappTemplate.replace('{name}', data.name.trim()).replace('{attending}', attending);
-  return `https://wa.me/${n}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${n}?text=${encodeURIComponent(q.message)}`;
 }

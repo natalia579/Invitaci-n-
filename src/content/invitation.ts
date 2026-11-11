@@ -1,6 +1,6 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  CONTENIDO DE LA INVITACIÓN — “Once Upon a Little Dream”
+ *  CONTENIDO DE LA INVITACIÓN — una carta personal
  * ─────────────────────────────────────────────────────────────────────────────
  *  Este es el ÚNICO archivo que necesitas editar para cambiar textos, fecha,
  *  lugar, enlaces, música e ilustraciones. El diseño vive en /src/components.
@@ -15,13 +15,13 @@ export const invitation = {
   meta: {
     /** Muestra etiquetas “Pendiente” en los datos que faltan. Pon `false` antes de publicar. */
     showPendingMarkers: true,
-    /** Nombres de los papás: SOLO aparecen al final del cuento. */
+    /** Nombres de los papás: SOLO aparecen en la firma final. */
     signature: 'Nati y Santi',
   },
 
   /** Ilustraciones propias (en /public/illustrations). `null` = se usa la ilustración vectorial incluida. */
   illustrations: {
-    /** Globo monumental de la apertura (PNG/WebP con transparencia, ver public/illustrations/README.md). */
+    /** Globo monumental de la apertura (PNG/WebP con transparencia). */
     balloon: null as string | null,
     /** Fondo de cielo pintado a pantalla completa (vertical). `null` = cielo pintado por código. */
     openingSky: null as string | null,
@@ -33,65 +33,56 @@ export const invitation = {
     venue: 'illustrations/lugar.jpg' as string | null,
   },
 
-  /** Apertura: el globo que trae una carta sellada. */
+  /** Apertura (aprobada): el globo trae una carta sellada. */
   opening: {
     envelopeLine: 'Hay algo que queremos contarte…',
     tapHint: 'Toca para descubrir',
     sealLabel: 'Romper el sello y abrir la carta',
-    letterLine1: 'Hay sueños que se vuelven realidad…',
-    letterLine2: 'Y hay personas con quienes queremos compartirlos.',
-    scrollHint: 'Desliza para continuar',
+    scrollHint: 'Desliza para seguir leyendo',
     replay: 'Ver la apertura de nuevo',
   },
 
-  chapter1: {
-    number: 'I',
-    label: 'Había una vez…',
-    paragraphs: [
-      'Había una vez dos personas que tenían muchos planes…',
-      'Pero la vida, que a veces escribe historias mejores que las nuestras, tenía preparada una sorpresa.',
-    ],
+  /**
+   * LA CARTA. Se lee de corrido, sin títulos. `emphasis` marca las frases con
+   * protagonismo; `opening` son las que aparecen al desplegarse la carta.
+   */
+  letter: {
+    opening: {
+      lead: 'Hay cosas que no se planean…',
+      follow: 'Y terminan siendo las que más ilusión nos hacen.',
+    },
+    body: [
+      { text: 'Hoy estamos viviendo uno de esos momentos que todavía no sabemos muy bien cómo contar, pero que nos morimos de ganas de compartir con las personas que más queremos.' },
+      { text: 'Entre tantos planes, la vida nos sorprendió con uno que no teníamos escrito. Y aquí estamos, esperando a alguien que todavía no conocemos, pero que ya nos tiene el corazón llenito de ilusión.' },
+      { text: 'Y aunque esta historia apenas comienza, hay algo que tenemos muy claro: queremos vivirla rodeados de las personas que han sido parte de la nuestra.' },
+      { text: 'Por eso, esta carta es para ti.', emphasis: true },
+      { text: 'Porque eres una de esas personas que queremos tener cerquita, que hacen más bonitos los momentos importantes y con quienes nos emociona imaginar los recuerdos que vienen.' },
+      { text: 'Tenemos una sorpresa por descubrir y muchísimas ganas de celebrarla contigo.', emphasis: true, final: true },
+    ] as { text: string; emphasis?: boolean; final?: boolean }[],
   },
 
-  chapter2: {
-    number: 'II',
-    label: 'Una pequeña gran sorpresa',
-    paragraphs: [
-      'Y así, sin pedir permiso, comenzó nuestra aventura más bonita.',
-      'Una que todavía no conocemos por completo, pero que ya nos tiene el corazón lleno.',
-    ],
+  /** La revelación: el momento en que se entiende qué celebramos. */
+  reveal: {
+    title: ['Gender Reveal', 'Baby Shower'] as [string, string],
   },
 
-  chapter3: {
-    number: 'III',
-    label: 'Hay secretos que merecen celebrarse',
-    paragraphs: [
-      'Hay una sorpresa que todavía está por descubrirse…',
-      'Y no se nos ocurre una forma más bonita de hacerlo que rodeados de las personas que queremos.',
-    ],
-    revealKicker: 'Te invitamos a nuestro',
-    reveal: ['Gender Reveal', 'Baby Shower'] as [string, string],
-  },
-
-  chapter4: {
-    number: 'IV',
-    label: 'Un día para recordar',
+  date: {
     weekday: 'Sábado',
     day: '28',
     monthYear: 'Noviembre 2026',
     time: '4:00 p. m.',
-    /** Fecha y hora exactas del evento, con la zona horaria de Colombia (UTC−5). */
+    /** Fecha y hora exactas, hora de Colombia (America/Bogota, UTC−5). */
     isoDateTime: '2026-11-28T16:00:00-05:00',
     durationHours: 4,
     countdownTitle: 'Faltan',
     countdownLabels: { days: 'Días', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos' },
-    countdownDone: '¡Hoy comienza este capítulo!',
+    countdownDone: '¡Hoy es el día!',
     addToCalendar: 'Agregar al calendario',
     calendarTitle: 'Gender Reveal & Baby Shower',
   },
 
-  chapter5: {
-    number: 'V',
+  /** UBICACIÓN — APROBADA. No modificar. */
+  venue: {
     label: 'El lugar donde nos encontraremos',
     venueName: 'Orquideorama' as string | null,
     address: 'Av. 2 Nte. #48, Olaya Herrera, Cali, Valle del Cauca' as string | null,
@@ -101,18 +92,15 @@ export const invitation = {
     addressFallback: 'Muy pronto compartiremos la dirección',
   },
 
-  chapter6: {
-    number: 'VI',
-    label: 'Dress Code',
+  dressCode: {
+    title: 'Dress Code',
     quotes: [
       { who: 'Como diría Santi:', what: 'Old Money.', emphasis: true },
       { who: 'Como diría Nati:', what: 'tú ponte lindo, que lo importante es que vengas.', emphasis: false },
     ],
   },
 
-  chapter7: {
-    number: 'VII',
-    label: 'Un detalle con amor',
+  gifts: {
     title: 'El mejor regalo es tenerte aquí.',
     paragraphs: [
       'Estamos preparando un día lleno de amor y nos hace muy felices poder compartirlo contigo.',
@@ -120,64 +108,59 @@ export const invitation = {
     ],
   },
 
-  chapter8: {
-    number: 'VIII',
-    label: '¿Nos acompañas?',
-    intro: 'Nos encantaría saber si podremos contar contigo.',
-    deadline: null as string | null, // p. ej. 'Por favor confírmanos antes del 20 de noviembre.'
-    /** La invitación es individual: por defecto no se pregunta el número de asistentes. */
-    askGuestCount: false as boolean,
-    maxGuests: 6,
-    fields: {
-      name: 'Tu nombre',
-      namePlaceholder: 'Nombre y apellido',
-      attending: '¿Nos acompañas?',
-      yes: 'Sí, ahí estaré',
-      no: 'No podré asistir',
-      guests: 'Número de asistentes',
-      guestsHelp: 'Incluyéndote a ti',
-    },
-    submit: 'Enviar confirmación',
-    submitWhatsApp: 'Confirmar por WhatsApp',
-    orWhatsApp: 'o confirmar por WhatsApp',
-    sending: 'Enviando…',
-    successYes: '¡Gracias! Ya eres parte de nuestra historia.',
-    successNo: 'Gracias por avisarnos. Te llevaremos en el corazón ese día.',
-    error: 'No pudimos guardar tu respuesta. Intenta de nuevo o confírmanos por WhatsApp.',
-    whatsappPending: 'El número de WhatsApp aún no está configurado.',
-    /** {name} y {attending} se reemplazan; {guests} dentro de whatsappYesGuests. */
-    whatsappTemplate: 'Hola Nati y Santi, soy {name}. {attending}',
-    whatsappYes: '¡Confirmo mi asistencia al Gender Reveal & Baby Shower! Ahí estaré.',
-    whatsappYesGuests: '¡Confirmo mi asistencia al Gender Reveal & Baby Shower! Asistiremos {guests}.',
-    whatsappNo: 'Lamentablemente no podré asistir al Gender Reveal & Baby Shower, pero les envío todo mi cariño.',
+  /** Confirmación de asistencia — estrictamente individual (una invitación = una persona). */
+  rsvpText: {
+    title: '¿Nos acompañas?',
+    intro: 'Nos haría mucha ilusión compartir este día contigo. ¿Podemos contar con tu presencia?',
+    nameLabel: 'Nombre y apellido',
+    namePlaceholder: 'Tu nombre y apellido',
+    question: '¿Podrás acompañarnos?',
+    yes: '¡Claro que sí!',
+    no: 'Esta vez no podré acompañarlos.',
+    submit: 'Confirmar mi respuesta',
+    sending: 'Guardando tu respuesta…',
+    loading: 'Abriendo tu invitación…',
+    successYes: '¡Qué felicidad saber que nos acompañarás! Nos vemos pronto.',
+    successNo: 'Gracias por hacérnoslo saber. Te tendremos presente en este día tan especial.',
+    change: 'Cambiar mi respuesta',
+    previousYes: 'Ya nos confirmaste que vienes.',
+    previousNo: 'Nos contaste que esta vez no podrás venir.',
+    error: 'No pudimos guardar tu respuesta. Revisa tu conexión e inténtalo de nuevo.',
+    noLink: 'Para confirmar, abre el enlace personal que te enviamos por WhatsApp.',
+    unknownLink: 'No encontramos esta invitación. Verifica que hayas abierto el enlace completo que te enviamos.',
+    notConfigured: 'Las confirmaciones todavía no están conectadas.',
   },
 
-  chapter9: {
-    number: 'IX',
-    label: 'El final de nuestra historia… por ahora',
-    paragraphs: ['Porque las historias más bonitas no se cuentan solas…', 'Se viven con las personas que queremos.'],
+  questions: {
+    title: '¿Tienes alguna pregunta?',
+    text: 'Escríbenos, estaremos felices de ayudarte.',
+    button: 'Escríbenos por WhatsApp',
+    message: '¡Hola! 🤎 Tengo una preguntita sobre el Gender Reveal & Baby Shower.',
+    /** PENDIENTE: número con indicativo y sin signos, p. ej. '573001234567'. */
+    whatsappNumber: (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || null,
+  },
+
+  closing: {
+    title: 'Qué bonito que seas parte de esto.',
+    text: 'Hay momentos que sabemos que vamos a recordar toda la vida. Y nos hace muy felices imaginarte en este.',
     signoff: 'Con amor,',
-    fin: 'Fin… por ahora',
   },
 
-  /** Confirmaciones de asistencia. */
+  /** Servicio de confirmaciones (Google Apps Script). Ver docs/confirmaciones-google-sheets.md */
   rsvp: {
-    /**
-     * URL del servicio donde se guardan las respuestas (opcional).
-     * Google Apps Script (ver docs/rsvp-google-sheets.md) o Formspree.
-     * Mientras sea `null`, sólo se ofrece WhatsApp y NUNCA se muestra “guardado”.
-     */
+    /** PENDIENTE: URL de la aplicación web de Apps Script (termina en /exec). */
     endpoint: (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined) || null,
-    provider: 'google-apps-script' as 'google-apps-script' | 'formspree',
-    /** WhatsApp de Santiago (+57 300 7512688), con indicativo y sin signos. */
-    whatsappNumber: (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || '573007512688',
   },
 
   music: {
-    /** Archivo propio o con licencia en /public/audio (p. ej. 'audio/cancion.mp3').
-     *  Si es `null`, suena una melodía original de caja musical generada en el navegador. */
+    /**
+     * PENDIENTE: archivo autorizado en /public/audio (p. ej. 'audio/clair-de-lune.mp3').
+     * Mientras sea `null` no suena nada y el botón de música no aparece.
+     */
     src: null as string | null,
-    volume: 0.55,
+    title: 'Clair de Lune — Claude Debussy',
+    volume: 0.5,
+    fadeInSeconds: 4,
     enableLabel: 'Activar música',
     playLabel: 'Reproducir música',
     muteLabel: 'Silenciar música',

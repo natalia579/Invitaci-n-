@@ -152,8 +152,31 @@ body {
   height: 2px;
   background: linear-gradient(180deg, rgba(120, 90, 60, 0.12), rgba(255, 255, 255, 0.7));
 }
-.letter-full {
+.letter-full,
+.letter-continue {
+  background-color: #faf6ee;
+  background-image:
+    linear-gradient(90deg, rgba(160, 125, 90, 0.13), rgba(255, 252, 245, 0) 9%, rgba(255, 252, 245, 0) 91%, rgba(160, 125, 90, 0.13)),
+    var(--grain), var(--mottle);
+  background-size: auto, 260px 260px, 600px 600px;
   box-shadow: none;
+}
+.letter-full {
+  background-image:
+    linear-gradient(180deg, rgba(160, 125, 90, 0.12), rgba(255, 252, 245, 0) 12%),
+    linear-gradient(90deg, rgba(160, 125, 90, 0.13), rgba(255, 252, 245, 0) 9%, rgba(255, 252, 245, 0) 91%, rgba(160, 125, 90, 0.13)),
+    var(--grain), var(--mottle);
+  background-size: auto, auto, 260px 260px, 600px 600px;
+}
+.letter-continue {
+  background-attachment: scroll;
+}
+.paper-deckle {
+  filter: drop-shadow(0 8px 10px rgba(73, 55, 47, 0.18));
+}
+.reveal-glow {
+  background: radial-gradient(closest-side, rgba(251, 247, 239, 0.88), rgba(251, 247, 239, 0.55) 60%, rgba(251, 247, 239, 0));
+  padding-inline: 1.5rem;
 }
 
 .page-light {

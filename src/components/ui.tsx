@@ -72,7 +72,18 @@ export function ChapterHeading({
   );
 }
 
-/** Contenedor de capítulo: una “página” del cuento. */
+/** Título de sección sin numeración (la invitación es una carta, no capítulos). */
+export function SectionTitle({ text, align = 'center' }: { text: string; align?: 'center' | 'left' | 'right' }) {
+  const a = align === 'center' ? 'items-center text-center' : align === 'left' ? 'items-start text-left' : 'items-end text-right';
+  return (
+    <Reveal className={`flex w-full flex-col gap-2 ${a}`}>
+      <span className="max-w-[18rem] font-display text-[1.6rem] italic leading-snug text-cafe">{text}</span>
+      <Ornament className="w-36" />
+    </Reveal>
+  );
+}
+
+/** Contenedor de sección: una “página” del libro ilustrado. */
 export function Chapter({
   id,
   children,

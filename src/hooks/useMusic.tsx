@@ -1,94 +1,109 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { invitation } from '../content/invitation';
-import { MusicBox } from '../audio/musicBox';
 
-type Player = { play: () => Promise<boolean>; pause: () => void };
+/**
+ * Música de fondo: un archivo autorizado (invitation.music.src).
+ *  · Empieza con el toque en el sello (dentro del gesto, como exige Safari).
+ *  · Entrada gradual de volumen con Web Audio (en iOS `audio.volume` no se puede cambiar).
+ *  · Si el navegador la bloquea, se ofrece un botón discreto para activarla.
+ *  · Sin archivo configurado, no suena nada y no se muestra el botón.
+ */
 
 type MusicState = {
+  available: boolean;
   playing: boolean;
-  /** El navegador bloqueó la reproducción automática: hay que pedir un toque. */
   blocked: boolean;
-  /** Intenta reproducir (respeta si el invitado silenció la música). */
   tryAutoplay: () => void;
   toggle: () => void;
 };
 
 const Ctx = createContext<MusicState | null>(null);
 
-function createPlayer(): Player {
-  const { src, volume } = invitation.music;
-  if (src) {
-    const audio = new Audio(src);
-    audio.loop = true;
-    audio.preload = 'auto';
-    audio.volume = volume;
-    return {
-      play: () =>
-        audio.play().then(
-          () => true,
-          () => false,
-        ),
-      pause: () => audio.pause(),
-    };
-  }
-  let box: MusicBox | null = null;
+type Player = { play: () => Promise<boolean>; pause: () => void };
+
+function createPlayer(src: string): Player {
+  const { volume, fadeInSeconds } = invitation.music;
+  const audio = new Audio(src);
+  audio.loop = true;
+  audio.preload = 'auto';
+  audio.setAttribute('playsinline', '');
+  let ctx: AudioContext | null = null;
+  let gain: GainNode | null = null;
+
+  const ensureGraph = () => {
+    if (ctx) return;
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      ctx = new AC();
+      const node = ctx.createMediaElementSource(audio);
+      gain = ctx.createGain();
+      gain.gain.value = 0;
+      node.connect(gain).connect(ctx.destination);
+    } catch {
+      ctx = null;
+      gain = null;
+    }
+  };
+
+  const fadeTo = (target: number, seconds: number) => {
+    if (ctx && gain) {
+      const now = ctx.currentTime;
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(target, now + seconds);
+    } else {
+      audio.volume = target; // respaldo (escritorio)
+    }
+  };
+
   return {
-    play: () => {
-      box ??= new MusicBox(volume * 0.9);
-      return box.play();
+    play: async () => {
+      ensureGraph(); // se crea dentro del gesto del usuario
+      try {
+        void ctx?.resume();
+        await audio.play();
+        fadeTo(volume, fadeInSeconds);
+        return true;
+      } catch {
+        return false;
+      }
     },
-    pause: () => box?.pause(),
+    pause: () => {
+      fadeTo(0, 0.6);
+      window.setTimeout(() => audio.pause(), 650);
+    },
   };
 }
 
 export function MusicProvider({ children }: { children: React.ReactNode }) {
+  const src = invitation.music.src;
   const player = useRef<Player | null>(null);
   const userMuted = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
-  const armed = useRef(false);
 
-  const getPlayer = () => (player.current ??= createPlayer());
+  const getPlayer = () => (src ? (player.current ??= createPlayer(src)) : null);
 
   const start = useCallback(async () => {
-    const ok = await getPlayer().play();
+    const p = getPlayer();
+    if (!p) return;
+    const ok = await p.play();
     setPlaying(ok);
     setBlocked(!ok);
-    return ok;
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
 
   const tryAutoplay = useCallback(() => {
     if (userMuted.current) return;
-    armed.current = true;
     void start();
   }, [start]);
 
-  // Si el navegador bloqueó el audio, arranca con el primer toque del invitado
-  // (iOS/Safari exigen un gesto explícito).
-  useEffect(() => {
-    if (!blocked) return;
-    const onGesture = (e: Event) => {
-      if (!armed.current || userMuted.current) return;
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('[data-music-toggle]')) return; // el botón ya lo maneja
-      void start();
-    };
-    window.addEventListener('pointerup', onGesture, { passive: true });
-    window.addEventListener('touchend', onGesture, { passive: true });
-    window.addEventListener('keydown', onGesture);
-    return () => {
-      window.removeEventListener('pointerup', onGesture);
-      window.removeEventListener('touchend', onGesture);
-      window.removeEventListener('keydown', onGesture);
-    };
-  }, [blocked, start]);
-
-  // Pausar cuando la pestaña queda en segundo plano
   useEffect(() => {
     const onVis = () => {
-      if (!player.current) return;
-      if (document.hidden) player.current.pause();
-      else if (playing && !userMuted.current) void player.current.play();
+      const p = player.current;
+      if (!p) return;
+      if (document.hidden) p.pause();
+      else if (playing && !userMuted.current) void p.play();
     };
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
@@ -97,16 +112,18 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const toggle = useCallback(() => {
     if (playing) {
       userMuted.current = true;
-      getPlayer().pause();
+      player.current?.pause();
       setPlaying(false);
     } else {
       userMuted.current = false;
-      armed.current = true;
       void start();
     }
   }, [playing, start]);
 
-  const value = useMemo(() => ({ playing, blocked, tryAutoplay, toggle }), [playing, blocked, tryAutoplay, toggle]);
+  const value = useMemo(
+    () => ({ available: Boolean(src), playing, blocked, tryAutoplay, toggle }),
+    [src, playing, blocked, tryAutoplay, toggle],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
