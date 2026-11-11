@@ -136,8 +136,8 @@ export const invitation = {
     text: 'Escríbenos, estaremos felices de ayudarte.',
     button: 'Escríbenos por WhatsApp',
     message: '¡Hola! 🤎 Tengo una preguntita sobre el Gender Reveal & Baby Shower.',
-    /** PENDIENTE: número con indicativo y sin signos, p. ej. '573001234567'. */
-    whatsappNumber: (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || null,
+    /** WhatsApp de Santi (+57 300 7512688), con indicativo y sin signos. */
+    whatsappNumber: (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || '573007512688',
   },
 
   closing: {
@@ -154,7 +154,8 @@ export const invitation = {
 
   music: {
     /**
-     * PENDIENTE: archivo autorizado en /public/audio (p. ej. 'audio/clair-de-lune.mp3').
+     * Sin música por decisión de Nati y Santi. Si algún día quieren música, poner aquí
+     * un archivo autorizado de /public/audio (p. ej. 'audio/cancion.mp3').
      * Mientras sea `null` no suena nada y el botón de música no aparece.
      */
     src: null as string | null,
