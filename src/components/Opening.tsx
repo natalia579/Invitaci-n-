@@ -1,256 +1,324 @@
-import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 'framer-motion';
 import { invitation } from '../content/invitation';
 import { Balloon } from './illustrations/Balloon';
-import { Cloud, Sparkle, Star } from './illustrations/Sky';
+import { Sparkle } from './illustrations/Sky';
+import { Envelope, LetterSheet, type EnvelopeState } from '../opening/Envelope';
+import { paintCloud, paintSky } from '../opening/paint';
 import { useMusic } from '../hooks/useMusic';
 
 /**
- * APERTURA “ONCE UPON A LITTLE DREAM”
+ * APERTURA — “El globo y la carta sellada”
  *
- *  Acto 1 (WebGL, ~7 s): libro 3D sobre lino → la cinta de raso se desata y se
- *  desliza → la tapa gira → pasan dos hojas → la cámara entra en la página.
- *  Acto 2 (HTML/SVG, ~4 s): la acuarela de la página cobra vida: nubes en tres
- *  profundidades, estrellas, el globo asciende, la banderola se despliega y
- *  aparecen los textos.
- *  Si el dispositivo no tiene WebGL o pide “reducir movimiento”, se pasa
- *  directamente al Acto 2 (o a su estado final).
+ *  Escena 1 · La llegada     Un globo monumental desciende entre nubes en capas.
+ *                            De la canasta cuelga un sobre antiguo.
+ *  Escena 2 · El sobre       La cámara se acerca al sobre hasta que es protagonista.
+ *  Escena 3 · Interacción    Se detiene y espera el toque en el sello de lacre:
+ *                            el sello se rompe, la solapa se abre, sale la carta,
+ *                            empieza la música.
+ *  Escena 4 · La carta       La carta se despliega a pantalla completa y comienza
+ *                            la historia.
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const SOFT = [0.45, 0, 0.2, 1] as const;
 
-type Phase = 'loading' | 'book' | 'story' | 'done';
+type Phase = 'arrive' | 'approach' | 'await' | 'open' | 'letter' | 'done';
+type Rect = { top: number; left: number; width: number; height: number };
+
+const T_ARRIVE = 4700; // ms hasta que empieza el acercamiento
+const T_APPROACH = 2600; // duración del acercamiento
 
 export function Opening({ onComplete }: { onComplete: () => void }) {
   const reduce = useReducedMotion() ?? false;
-  const [phase, setPhase] = useState<Phase>(reduce ? 'done' : 'loading');
-  const [canvasOn, setCanvasOn] = useState(!reduce);
-  const [canvasFading, setCanvasFading] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const music = useMusic();
   const o = invitation.opening;
 
-  // ── Acto 1: escena 3D ──
+  const [phase, setPhase] = useState<Phase>(reduce ? 'await' : 'arrive');
+  const [env, setEnv] = useState<EnvelopeState>('closed');
+  const [letterFrom, setLetterFrom] = useState<Rect | null>(null);
+  const [textStage, setTextStage] = useState(0);
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const miniRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLDivElement>(null);
+  const letterRef = useRef<HTMLDivElement>(null);
+  const world = useAnimationControls();
+
+  // Pinturas (cielo y nubes) generadas una vez
+  const art = useMemo(() => {
+    const w = Math.min(1100, Math.round(window.innerWidth * Math.min(2, window.devicePixelRatio || 1)));
+    const h = Math.round((w * window.innerHeight) / window.innerWidth);
+    return {
+      sky: invitation.illustrations.openingSky ?? paintSky(w, h),
+      clouds: [paintCloud(900, 420, 3), paintCloud(900, 420, 11), paintCloud(1000, 440, 29), paintCloud(820, 400, 41)],
+    };
+  }, []);
+
+  /* ── Escena 1 → 2: llegada y acercamiento ── */
   useEffect(() => {
     if (reduce) return;
-    let scene: import('../three/BookScene').BookScene | null = null;
-    let cancelled = false;
-    let gaveUp = false;
-    const toStory = () => {
-      if (cancelled) return;
-      gaveUp = true;
-      setPhase('story');
-      setCanvasOn(false);
-    };
-    const fallback = window.setTimeout(toStory, 6000); // si la escena tarda demasiado en cargar
-    (async () => {
-      try {
-        const mod = await import('../three/BookScene');
-        if (cancelled || !canvasRef.current || !mod.webglAvailable()) return toStory();
-        scene = new mod.BookScene({
-          canvas: canvasRef.current,
-          title: o.bookTitle,
-          kicker: o.bookKicker,
-          pageTitle: o.titlePage,
-          pageSub: o.titlePageSub,
-          onHandoff: () => {
-            setPhase('story');
-            setCanvasFading(true);
-            music.tryAutoplay();
-          },
-          onEnd: () => {
-            scene?.dispose();
-            setCanvasOn(false);
-          },
-        });
-        await scene.init();
-        if (cancelled || gaveUp) {
-          scene.dispose();
-          return;
-        }
-        clearTimeout(fallback);
-        setPhase('book');
-        // deja que el primer cuadro se asiente antes de empezar
-        window.setTimeout(() => scene?.start(), 450);
-      } catch (e) {
-        console.warn('Escena 3D no disponible', e);
-        toStory();
-      }
-    })();
-    return () => {
-      cancelled = true;
-      clearTimeout(fallback);
-      scene?.dispose();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const t = window.setTimeout(() => setPhase('approach'), T_ARRIVE);
+    return () => clearTimeout(t);
   }, [reduce]);
 
-  // bloqueo de scroll mientras dura la apertura
-  const [textStage, setTextStage] = useState(reduce ? 3 : 0);
+  useLayoutEffect(() => {
+    if (phase !== 'approach') return;
+    const sec = sectionRef.current?.getBoundingClientRect();
+    const a = miniRef.current?.getBoundingClientRect();
+    const b = closeRef.current?.getBoundingClientRect();
+    if (!sec || !a || !b || a.width === 0) {
+      setPhase('await');
+      return;
+    }
+    // transforma el “mundo” para que el sobre pequeño termine exactamente donde está el grande
+    const s = b.width / a.width;
+    const ax = a.left - sec.left, ay = a.top - sec.top;
+    const bx = b.left - sec.left, by = b.top - sec.top;
+    void world
+      .start({ x: bx - s * ax, y: by - s * ay, scale: s }, { duration: T_APPROACH / 1000, ease: [0.6, 0, 0.2, 1] })
+      .then(() => setPhase('await'));
+  }, [phase, world]);
+
+  /* ── Escena 3: el toque en el sello ── */
+  const onSeal = useCallback(() => {
+    if (phase !== 'await') return;
+    music.tryAutoplay(); // dentro del gesto: iOS permite el audio
+    setPhase('open');
+    setEnv('breaking');
+    const q = reduce ? 0.35 : 1;
+    window.setTimeout(() => setEnv('opening'), 520 * q);
+    window.setTimeout(() => setEnv('rising'), 1400 * q);
+    window.setTimeout(() => {
+      const sec = sectionRef.current?.getBoundingClientRect();
+      const l = letterRef.current?.getBoundingClientRect();
+      setLetterFrom(
+        sec && l
+          ? { top: l.top - sec.top, left: l.left - sec.left, width: l.width, height: l.height }
+          : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight },
+      );
+      setPhase('letter');
+    }, 2650 * q);
+  }, [phase, music, reduce]);
+
+  /* ── Escena 4: textos de la carta ── */
   useEffect(() => {
-    if (phase !== 'story') return;
+    if (phase !== 'letter') return;
     const ids = [
-      window.setTimeout(() => setTextStage(1), 2100),
-      window.setTimeout(() => setTextStage(2), 3400),
-      window.setTimeout(() => setTextStage(3), 4500),
+      window.setTimeout(() => setTextStage(1), reduce ? 200 : 1500),
+      window.setTimeout(() => setTextStage(2), reduce ? 400 : 3100),
+      window.setTimeout(() => setTextStage(3), reduce ? 600 : 4300),
     ];
     return () => ids.forEach(clearTimeout);
-  }, [phase]);
+  }, [phase, reduce]);
+
   useEffect(() => {
-    const root = document.documentElement;
-    const locked = !reduce && textStage < 2;
-    root.classList.toggle('is-locked', locked);
-    if (textStage >= 3) {
+    if (textStage === 3) {
       setPhase('done');
       onComplete();
     }
-    return () => root.classList.remove('is-locked');
-  }, [textStage, reduce, onComplete]);
+  }, [textStage, onComplete]);
+
+  // El desplazamiento queda bloqueado hasta que la carta termina de presentarse
   useEffect(() => {
-    if (reduce) {
-      onComplete();
-      music.tryAutoplay();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduce]);
+    const root = document.documentElement;
+    root.classList.toggle('is-locked', phase !== 'done');
+    return () => root.classList.remove('is-locked');
+  }, [phase]);
 
-  const live = phase === 'story' || phase === 'done';
-
-  // ── Escena 6: al deslizar, entramos al cuento (las nubes se abren, el globo sube) ──
-  const { scrollY } = useScroll();
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const balloonY = useTransform(scrollY, [0, vh], [0, reduce ? 0 : -vh * 0.42]);
-  const balloonS = useTransform(scrollY, [0, vh], [1, reduce ? 1 : 1.12]);
-  const openL = useTransform(scrollY, [0, vh], ['0%', reduce ? '0%' : '-38%']);
-  const openR = useTransform(scrollY, [0, vh], ['0%', reduce ? '0%' : '38%']);
-  const farY = useTransform(scrollY, [0, vh], [0, reduce ? 0 : -vh * 0.12]);
-  const textY = useTransform(scrollY, [0, vh], [0, reduce ? 0 : -vh * 0.25]);
-  const fade = useTransform(scrollY, [0, vh * 0.55], [1, 0]);
+  const showClose = phase === 'await' || phase === 'open' || phase === 'letter';
+  const letterOn = phase === 'letter' || phase === 'done';
 
   return (
-    <section aria-label="Apertura" className="relative h-[100svh] min-h-[600px] w-full overflow-hidden">
-      {/* Página de acuarela (continúa la última página del libro) */}
-      <div aria-hidden className="sky-wash absolute inset-0" />
-      <div aria-hidden className="page-light absolute inset-0" />
+    <section ref={sectionRef} aria-label="Apertura" className="opening relative h-[100dvh] min-h-[560px] w-full overflow-hidden bg-[#efe6d6]">
+      {/* ═════════ Escena 1: el mundo (cielo, nubes, globo) ═════════ */}
+      <motion.div
+        className="absolute inset-0 will-change-transform"
+        style={{ transformOrigin: '0 0' }}
+        initial={{ x: 0, y: 0, scale: 1 }}
+        animate={world}
+        aria-hidden
+      >
+        <img src={art.sky} alt="" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
 
-      {/* Nubes lejanas */}
-      <motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ y: farY }}>
-        {FAR.map((c, i) => (
-          <motion.div
-            key={i}
-            className={`absolute ${c.cls}`}
-            initial={{ opacity: 0, y: 26, scale: 0.94 }}
-            animate={live ? { opacity: c.op, y: 0, scale: 1 } : {}}
-            transition={{ duration: 3.2, ease: EASE, delay: c.d }}
-          >
-            <Cloud variant={c.v} className={`${c.drift} w-full`} />
-          </motion.div>
-        ))}
-      </motion.div>
+        {/* nubes lejanas */}
+        <CloudImg src={art.clouds[0]} cls="left-[-30%] top-[6%] w-[80%]" drift="drift-a" op={0.75} delay={0} />
+        <CloudImg src={art.clouds[1]} cls="right-[-34%] top-[22%] w-[86%]" drift="drift-b" op={0.7} delay={0.3} />
 
-      {/* Estrellas que se “dibujan” */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        {STARS.map((s, i) => (
-          <motion.div
-            key={i}
-            className={`absolute ${s.cls}`}
-            initial={{ opacity: 0, scale: 0, rotate: -60 }}
-            animate={live ? { opacity: 1, scale: 1, rotate: 0 } : {}}
-            transition={{ duration: 1.4, ease: EASE, delay: 0.9 + i * 0.16 }}
-          >
-            {s.star ? <Star className={`twinkle ${s.tw} w-full`} /> : <Sparkle className={`twinkle ${s.tw} w-full`} />}
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Globo + banderola */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-center pb-[8svh]">
-        <motion.div style={{ y: balloonY, scale: balloonS }} className="flex flex-col items-center">
-          <motion.div
-            initial={reduce ? false : { y: '75svh', rotate: -5 }}
-            animate={live ? { y: 0, rotate: 0 } : {}}
-            transition={{ y: { duration: 3.0, ease: EASE, delay: 0.15 }, rotate: { duration: 4, ease: SOFT, delay: 0.15 } }}
-          >
-            <div className="bob flex flex-col items-center">
-              <Balloon className="balloon-hero drop-shadow-balloon h-auto" />
-              <Pennant text={o.banner} show={live} reduce={reduce} />
-            </div>
-          </motion.div>
-        </motion.div>
-
-        <motion.div className="mt-[3svh] max-w-[23rem] px-8 text-center" style={{ y: textY, opacity: fade }}>
-          <WordReveal
-            text={o.line1}
-            show={textStage >= 1}
-            className="font-display text-[1.7rem] font-light italic leading-[1.25] text-cocoa sm:text-[2.1rem]"
-          />
-          <WordReveal
-            text={o.line2}
-            show={textStage >= 2}
-            className="mt-4 font-serif text-[0.98rem] font-light leading-relaxed text-cafe sm:text-[1.08rem]"
-          />
-        </motion.div>
-      </div>
-
-      {/* Nubes cercanas: se abren como un telón al deslizar */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
-        <motion.div className="absolute -left-[22%] bottom-[-4%] w-[70%] max-w-[480px]" style={{ x: openL }}>
-          <motion.div
-            initial={{ x: '-45%', opacity: 0 }}
-            animate={live ? { x: 0, opacity: 1 } : {}}
-            transition={{ duration: 3.6, ease: EASE, delay: 0.25 }}
-          >
-            <Cloud variant={2} className="drift-slow w-full" />
-          </motion.div>
-        </motion.div>
-        <motion.div className="absolute -right-[20%] bottom-[6%] w-[60%] max-w-[420px]" style={{ x: openR }}>
-          <motion.div
-            initial={{ x: '45%', opacity: 0 }}
-            animate={live ? { x: 0, opacity: 0.95 } : {}}
-            transition={{ duration: 3.9, ease: EASE, delay: 0.45 }}
-          >
-            <Cloud variant={0} className="drift-slow-rev w-full" />
-          </motion.div>
-        </motion.div>
-      </div>
-
-      {/* Indicación para deslizar */}
-      <motion.div className="absolute inset-x-0 bottom-[3svh] z-30 flex justify-center" style={{ opacity: fade }}>
+        {/* globo monumental con el sobre colgando */}
         <motion.div
-          className="flex flex-col items-center gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: textStage >= 3 ? 1 : 0 }}
-          transition={{ duration: 1.4 }}
+          className="balloon-monument absolute left-1/2 top-[-5%] flex flex-col items-center"
+          initial={reduce ? false : { y: '-105%' }}
+          animate={{ y: '0%' }}
+          transition={{ duration: 4.6, ease: [0.16, 0.8, 0.3, 1] }}
         >
-          <span className="label text-cafe/80">{o.scrollHint}</span>
-          <span className="scroll-line" aria-hidden />
+          <div className="balloon-sway flex w-full flex-col items-center">
+            <Balloon className="w-full" />
+            {/* cuerda */}
+            <svg viewBox="0 0 10 100" className="-mt-[2.2%] h-[9%] min-h-[30px] w-[4px] overflow-visible" preserveAspectRatio="none" aria-hidden>
+              <path d="M5 0 C 4 30, 6 60, 5 100" stroke="#6B5143" strokeWidth="1.2" fill="none" vectorEffect="non-scaling-stroke" />
+            </svg>
+            <div ref={miniRef} className="envelope-swing -mt-[2px] w-[21%]">
+              <Envelope id="mini" />
+            </div>
+          </div>
         </motion.div>
+
+        {/* nubes medias, por delante del globo */}
+        <CloudImg src={art.clouds[2]} cls="left-[-38%] top-[48%] w-[96%]" drift="drift-b" op={0.92} delay={0.5} />
+        <CloudImg src={art.clouds[3]} cls="right-[-40%] top-[60%] w-[90%]" drift="drift-a" op={0.88} delay={0.8} />
+
+        {/* destellos */}
+        {[
+          'left-[12%] top-[16%] w-3',
+          'right-[14%] top-[10%] w-4',
+          'left-[20%] top-[40%] w-2.5',
+          'right-[10%] top-[46%] w-3',
+        ].map((c, i) => (
+          <Sparkle key={i} className={`twinkle ${['', 'twinkle-d1', 'twinkle-d2', 'twinkle-d3'][i]} absolute ${c}`} />
+        ))}
       </motion.div>
 
-      {/* Acto 1: el libro (canvas WebGL a pantalla completa) */}
-      <AnimatePresence>
-        {canvasOn && (
+      {/* nubes de primer plano: al acercarnos, la cámara las atraviesa */}
+      <motion.div
+        className="pointer-events-none absolute inset-0"
+        initial={false}
+        animate={phase === 'arrive' ? { scale: 1, opacity: 1 } : { scale: 2.4, opacity: 0 }}
+        transition={{ duration: T_APPROACH / 1000, ease: [0.6, 0, 0.2, 1] }}
+        aria-hidden
+      >
+        <CloudImg src={art.clouds[0]} cls="left-[-46%] bottom-[-6%] w-[118%]" drift="drift-slow" op={1} delay={0.2} from={-40} />
+        <CloudImg src={art.clouds[2]} cls="right-[-50%] bottom-[4%] w-[110%]" drift="drift-slow-rev" op={0.95} delay={0.6} from={40} />
+      </motion.div>
+
+      {/* luz y bruma que separan el sobre del fondo (llega durante el acercamiento) */}
+      <motion.div
+        className="envelope-mist pointer-events-none absolute inset-0"
+        initial={false}
+        animate={{ opacity: phase === 'arrive' ? 0 : 1 }}
+        transition={{ duration: 1.5, delay: phase === 'approach' ? 1.2 : 0 }}
+        aria-hidden
+      />
+
+      {/* ═════════ Escenas 2–3: el sobre como protagonista ═════════ */}
+      <motion.div
+        className="absolute inset-0 flex flex-col items-center justify-center px-6"
+        initial={false}
+        animate={{ opacity: showClose ? 1 : 0 }}
+        transition={{ duration: showClose ? 0.25 : 0.6 }}
+        style={{ pointerEvents: showClose ? 'auto' : 'none' }}
+      >
+        <motion.p
+          className="relative mb-[7dvh] text-center font-display text-[1.85rem] font-light italic leading-snug text-cocoa sm:text-[2.3rem]"
+          initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
+          animate={phase === 'await' || phase === 'open' ? { opacity: phase === 'open' ? 0 : 1, y: 0, filter: 'blur(0px)' } : {}}
+          transition={{ duration: 1.4, ease: EASE, delay: phase === 'await' ? 0.4 : 0 }}
+        >
+          {o.envelopeLine}
+        </motion.p>
+
+        <div ref={closeRef} className="envelope-close relative">
           <motion.div
-            className="fixed inset-0 z-[70] bg-[#efe9de]"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: canvasFading ? 0 : 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: canvasFading ? 0.9 : 0.5, ease: SOFT }}
-            aria-hidden
+            initial={false}
+            animate={phase === 'letter' ? { y: 60, opacity: 0 } : { y: 0, opacity: 1 }}
+            transition={{ duration: 0.9, ease: SOFT }}
           >
-            <canvas ref={canvasRef} className="h-full w-full" />
-            <AnimatePresence>
-              {phase === 'loading' && (
+            <Envelope
+              id="main"
+              state={env}
+              onSeal={onSeal}
+              sealPulse={phase === 'await'}
+              sealLabel={o.sealLabel}
+              letterRef={letterRef}
+            />
+          </motion.div>
+        </div>
+
+        <motion.span
+          className="label relative mt-[6dvh] text-cafe"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: phase === 'await' ? 1 : 0 }}
+          transition={{ duration: 1.2, delay: phase === 'await' ? 1.3 : 0 }}
+        >
+          {o.tapHint}
+        </motion.span>
+      </motion.div>
+
+      {/* ═════════ Escena 4: la carta se despliega ═════════ */}
+      <AnimatePresence>
+        {letterOn && letterFrom && (
+          <motion.div
+            className="absolute z-30"
+            initial={{ ...letterFrom, rotate: -1.5 }}
+            animate={{ top: 0, left: 0, width: '100%', height: '100%', rotate: 0 }}
+            transition={{ duration: reduce ? 0.3 : 1.35, ease: [0.65, 0, 0.25, 1] }}
+          >
+            <LetterSheet className="letter-full">
+              <motion.div
+                className="absolute inset-0"
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 0.35 }}
+                transition={{ duration: 1.6, delay: 0.6 }}
+                aria-hidden
+              >
+                <span className="letter-crease absolute inset-x-0 top-1/3" />
+                <span className="letter-crease absolute inset-x-0 top-2/3" />
+              </motion.div>
+              <motion.div
+                className="absolute inset-[14px] border border-gold/50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1.2, delay: 1.1 }}
+                aria-hidden
+              />
+              <motion.div
+                className="absolute inset-[19px] border border-gold/25"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1.2, delay: 1.25 }}
+                aria-hidden
+              />
+              <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
                 <motion.div
-                  className="absolute inset-0 flex items-center justify-center"
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
+                  className="mb-8 w-[22%] max-w-[110px]"
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={textStage >= 1 ? { opacity: 0.9, y: 0 } : {}}
+                  transition={{ duration: 2, ease: EASE }}
                 >
-                  <Sparkle className="twinkle w-5" />
+                  <div className="bob-slow">
+                    <Balloon className="w-full" />
+                  </div>
                 </motion.div>
-              )}
-            </AnimatePresence>
+                <Words text={o.letterLine1} show={textStage >= 1} className="max-w-[20rem] font-display text-[2.05rem] font-light italic leading-[1.22] text-cocoa sm:text-[2.6rem]" />
+                <motion.span
+                  className="my-7 block h-px w-16 bg-gold/70"
+                  initial={{ scaleX: 0 }}
+                  animate={textStage >= 2 ? { scaleX: 1 } : {}}
+                  transition={{ duration: 1, ease: EASE }}
+                  aria-hidden
+                />
+                <Words text={o.letterLine2} show={textStage >= 2} className="max-w-[18rem] font-serif text-[1.02rem] font-light leading-relaxed text-cafe sm:text-[1.12rem]" />
+              </div>
+              <motion.div
+                className="pointer-events-none absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: textStage >= 2 ? 0.85 : 0 }}
+                transition={{ duration: 2 }}
+                aria-hidden
+              >
+                <Sparkle className="twinkle absolute left-[16%] top-[14%] w-3" />
+                <Sparkle className="twinkle twinkle-d2 absolute right-[14%] top-[22%] w-2.5" />
+              </motion.div>
+              <motion.div
+                className="absolute inset-x-0 bottom-[5dvh] flex flex-col items-center gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: textStage >= 3 ? 1 : 0 }}
+                transition={{ duration: 1.2 }}
+              >
+                <span className="label text-cafe/80">{o.scrollHint}</span>
+                <span className="scroll-line" aria-hidden />
+              </motion.div>
+            </LetterSheet>
           </motion.div>
         )}
       </AnimatePresence>
@@ -260,52 +328,22 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
 
 /* ─────────────────────────── piezas ─────────────────────────── */
 
-const FAR = [
-  { v: 1 as const, cls: '-left-[14%] top-[6%] w-[50%] max-w-[320px]', d: 0.0, drift: 'drift-a', op: 0.9 },
-  { v: 0 as const, cls: '-right-[16%] top-[3%] w-[56%] max-w-[360px]', d: 0.2, drift: 'drift-b', op: 0.85 },
-  { v: 2 as const, cls: '-left-[24%] top-[36%] w-[60%] max-w-[400px]', d: 0.35, drift: 'drift-b', op: 0.7 },
-  { v: 1 as const, cls: '-right-[20%] top-[30%] w-[48%] max-w-[320px]', d: 0.1, drift: 'drift-a', op: 0.75 },
-];
-
-const STARS = [
-  { cls: 'left-[14%] top-[13%] w-3', tw: '', star: false },
-  { cls: 'right-[19%] top-[19%] w-4', tw: 'twinkle-d1', star: true },
-  { cls: 'left-[26%] top-[30%] w-2.5', tw: 'twinkle-d2', star: false },
-  { cls: 'right-[11%] top-[42%] w-3', tw: 'twinkle-d3', star: false },
-  { cls: 'left-[9%] top-[50%] w-3', tw: 'twinkle-d1', star: true },
-  { cls: 'right-[28%] top-[9%] w-2', tw: 'twinkle-d2', star: false },
-];
-
-/** Banderola de papel que se despliega desde el centro. */
-function Pennant({ text, show, reduce }: { text: string; show: boolean; reduce: boolean }) {
+function CloudImg({ src, cls, drift, op, delay, from = 0 }: { src: string; cls: string; drift: string; op: number; delay: number; from?: number }) {
+  const reduce = useReducedMotion();
   return (
-    <div className="pennant-swing -mt-[2px] flex flex-col items-center">
-      <svg viewBox="0 0 140 26" className="h-[22px] w-[124px]" aria-hidden>
-        <motion.path
-          d="M52 0 L 14 26 M88 0 L 126 26"
-          stroke="#6B5143"
-          strokeWidth="0.8"
-          fill="none"
-          opacity={0.7}
-          initial={{ pathLength: reduce ? 1 : 0 }}
-          animate={show ? { pathLength: 1 } : {}}
-          transition={{ duration: 0.8, delay: 1.3 }}
-        />
-      </svg>
-      <motion.div
-        className="pennant px-8 py-[9px]"
-        initial={reduce ? false : { clipPath: 'inset(0 50% 0 50%)' }}
-        animate={show ? { clipPath: 'inset(0 0% 0 0%)' } : {}}
-        transition={{ duration: 1.2, ease: EASE, delay: 1.6 }}
-      >
-        <span className="whitespace-nowrap font-display text-[1.06rem] italic tracking-wide text-cocoa sm:text-[1.2rem]">{text}</span>
-      </motion.div>
-    </div>
+    <motion.div
+      className={`absolute ${cls}`}
+      initial={reduce ? false : { opacity: 0, x: `${from}%`, y: 18 }}
+      animate={{ opacity: op, x: '0%', y: 0 }}
+      transition={{ duration: 3.4, ease: EASE, delay }}
+    >
+      <img src={src} alt="" className={`${drift} block w-full`} draggable={false} />
+    </motion.div>
   );
 }
 
-/** Revela un texto palabra por palabra, con un leve desenfoque que se aclara. */
-export function WordReveal({ text, show, className }: { text: string; show: boolean; className?: string }) {
+/** Revela un texto palabra por palabra. */
+export function Words({ text, show, className }: { text: string; show: boolean; className?: string }) {
   const words = text.split(' ');
   return (
     <p className={className} aria-label={text}>
@@ -316,7 +354,7 @@ export function WordReveal({ text, show, className }: { text: string; show: bool
           className="inline-block whitespace-pre"
           initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }}
           animate={show ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
-          transition={{ duration: 0.9, ease: EASE, delay: i * 0.07 }}
+          transition={{ duration: 1, ease: EASE, delay: i * 0.08 }}
         >
           {w + (i < words.length - 1 ? ' ' : '')}
         </motion.span>

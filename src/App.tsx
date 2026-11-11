@@ -21,7 +21,7 @@ export default function App() {
   const [openingKey, setOpeningKey] = useState(0);
   const onComplete = useCallback(() => setReady(true), []);
 
-  /** Vuelve a reproducir la apertura completa (libro + cinta + globo). */
+  /** Vuelve a reproducir la apertura completa (globo, sobre y carta). */
   const replay = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
     setReady(false);

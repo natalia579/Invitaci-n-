@@ -21,7 +21,10 @@ export const invitation = {
 
   /** Ilustraciones propias (en /public/illustrations). `null` = se usa la ilustración vectorial incluida. */
   illustrations: {
+    /** Globo monumental de la apertura (PNG/WebP con transparencia, ver public/illustrations/README.md). */
     balloon: null as string | null,
+    /** Fondo de cielo pintado a pantalla completa (vertical). `null` = cielo pintado por código. */
+    openingSky: null as string | null,
     cloud: null as string | null,
     rockingHorse: 'illustrations/caballito.png' as string | null,
     giftBox: null as string | null,
@@ -30,17 +33,15 @@ export const invitation = {
     venue: 'illustrations/lugar.jpg' as string | null,
   },
 
-  /** Apertura cinematográfica: libro 3D, cinta de raso y globo. */
+  /** Apertura: el globo que trae una carta sellada. */
   opening: {
-    bookTitle: ['Once Upon', 'a Little Dream'] as [string, string],
-    bookKicker: 'Un pequeño sueño',
-    titlePage: 'Once Upon a Little Dream',
-    titlePageSub: 'Capítulo primero',
-    banner: 'Once Upon a Little Dream',
-    line1: 'Había una vez una historia que apenas comenzaba…',
-    line2: 'Y una pequeña sorpresa que lo cambiaría todo.',
-    scrollHint: 'Desliza para entrar al cuento',
-    replay: 'Volver a abrir el cuento',
+    envelopeLine: 'Hay algo que queremos contarte…',
+    tapHint: 'Toca para descubrir',
+    sealLabel: 'Romper el sello y abrir la carta',
+    letterLine1: 'Hay sueños que se vuelven realidad…',
+    letterLine2: 'Y hay personas con quienes queremos compartirlos.',
+    scrollHint: 'Desliza para continuar',
+    replay: 'Ver la apertura de nuevo',
   },
 
   chapter1: {

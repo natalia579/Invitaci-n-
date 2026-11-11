@@ -28,21 +28,24 @@ npm run preview    # sirve /dist
 Mientras `meta.showPendingMarkers` sea `true`, la página muestra etiquetas “Pendiente”.
 **Antes de publicar**, completa los datos y cámbialo a `false`.
 
-## La apertura 3D
+## La apertura: el globo y la carta sellada
 
-`src/three/BookScene.ts` construye con Three.js (WebGL) un libro de tapa dura sobre lino,
-con una cinta de raso que es geometría 3D real. El lazo se desata, la cinta se desliza, la tapa
-gira, pasan dos hojas y la cámara entra en la última página. Todas las texturas (tela, dorado
-en relieve, guardas, páginas, acuarela) se generan en el navegador: no hay descargas.
-Si el dispositivo no tiene WebGL o pide “reducir movimiento”, se salta al cuento ilustrado.
-El botón con el libro (arriba a la derecha) y “Volver a abrir el cuento” repiten la apertura.
+1. **La llegada:** un globo monumental desciende entre nubes en capas; de la canasta cuelga un sobre.
+2. **El sobre:** la cámara se acerca hasta que el sobre es el protagonista.
+3. **Interacción:** todo se detiene hasta que el invitado toca el sello de lacre (un botón real).
+   El sello se rompe, la solapa se abre, sale la carta y empieza la música.
+4. **La carta:** se despliega a pantalla completa con el inicio de la historia.
+
+El cielo y las nubes se pintan en el navegador (`src/opening/paint.ts`); el sobre, el lacre y la
+carta están en `src/opening/Envelope.tsx`. El globo y el cielo se pueden reemplazar por arte
+propio en `invitation.illustrations.balloon` y `openingSky`.
 
 ## Estructura
 
 ```
 src/content/invitation.ts     ← contenido editable
-src/three/                    ← escena 3D: libro, cinta de raso, texturas
-src/components/Opening.tsx    ← orquesta la apertura (3D → acuarela → globo)
+src/opening/                  ← sobre, lacre, carta y pintura del cielo
+src/components/Opening.tsx    ← orquesta las cuatro escenas de apertura
 src/components/chapters/      ← capítulos I–VIII
 src/components/illustrations/ ← ilustraciones SVG en acuarela + filtros
 src/audio/musicBox.ts         ← caja musical original (Web Audio)

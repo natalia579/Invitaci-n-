@@ -33,8 +33,8 @@ export function MusicButton({ visible, onReplay }: { visible: boolean; onReplay:
           </AnimatePresence>
           <button type="button" onClick={onReplay} aria-label={invitation.opening.replay} title={invitation.opening.replay} className="music-btn">
             <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" aria-hidden>
-              <path d="M4 5.5c2.6-1 5.4-1 8 .8 2.6-1.8 5.4-1.8 8-.8v13c-2.6-1-5.4-1-8 .8-2.6-1.8-5.4-1.8-8-.8z" />
-              <path d="M12 6.3v13" />
+              <rect x="3.5" y="6" width="17" height="12" rx="1" />
+              <path d="M3.8 6.4 12 13l8.2-6.6" />
             </svg>
           </button>
           <button
