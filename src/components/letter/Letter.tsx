@@ -5,7 +5,7 @@ import { EASE } from '../ui';
 
 /**
  * LA CARTA (continuación del papel que se desplegó en la apertura).
- * Corta y sobria: un párrafo, la frase protagonista y la firma.
+ * Corta y sobria: un párrafo y la frase protagonista (la firma va en el cierre).
  * Mismo papel y mismos filetes dorados; sin títulos.
  */
 export function Letter() {
@@ -24,7 +24,6 @@ export function Letter() {
             {p.emphasis ? <Emphasis text={p.text} final={p.final} /> : <Paragraph text={p.text} />}
           </div>
         ))}
-        <Signature signoff={L.signoff} name={L.signature} />
       </div>
     </section>
   );
@@ -84,21 +83,6 @@ function Emphasis({ text, final }: { text: string; final?: boolean }) {
         <Sparkle className="twinkle twinkle-d2 w-2.5" />
         <Sparkle className="twinkle twinkle-d1 w-3" />
       </motion.div>
-    </motion.div>
-  );
-}
-
-function Signature({ signoff, name }: { signoff: string; name: string }) {
-  return (
-    <motion.div
-      className="mb-[2dvh] flex flex-col items-center text-center"
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.8 }}
-      transition={{ duration: 1.3, ease: EASE }}
-    >
-      <span className="font-serif text-[1rem] font-light italic text-cafe">{signoff}</span>
-      <span className="mt-1 font-display text-[2.4rem] italic leading-tight text-cocoa">{name}</span>
     </motion.div>
   );
 }

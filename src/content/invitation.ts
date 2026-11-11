@@ -55,8 +55,6 @@ export const invitation = {
       { text: 'Estamos preparando un día muy especial para celebrar la llegada de nuestro bebé, y nos haría muchísima ilusión que fueras parte de él.' },
       { text: 'Porque hay recuerdos que queremos construir contigo.', emphasis: true, final: true },
     ] as { text: string; emphasis?: boolean; final?: boolean }[],
-    signoff: 'Con cariño,',
-    signature: 'Nati y Santi.',
   },
 
   /** La revelación: el momento en que se entiende qué celebramos. */
