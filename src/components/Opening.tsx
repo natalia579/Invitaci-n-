@@ -27,7 +27,7 @@ type Phase = 'arrive' | 'approach' | 'await' | 'open' | 'letter' | 'done';
 type Rect = { top: number; left: number; width: number; height: number };
 
 const T_ARRIVE = 4700; // ms hasta que empieza el acercamiento
-const T_APPROACH = 2600; // duración del acercamiento
+const T_APPROACH = 3300; // duración del viaje de cámara hacia el sobre
 
 export function Opening({ onComplete }: { onComplete: () => void }) {
   const reduce = useReducedMotion() ?? false;
@@ -44,6 +44,9 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
   const closeRef = useRef<HTMLDivElement>(null);
   const letterRef = useRef<HTMLDivElement>(null);
   const world = useAnimationControls();
+  const sky = useAnimationControls();
+  const back = useAnimationControls();
+  const mid = useAnimationControls();
 
   // Pinturas (cielo y nubes) generadas una vez
   const art = useMemo(() => {
@@ -71,14 +74,23 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
       setPhase('await');
       return;
     }
-    // transforma el “mundo” para que el sobre pequeño termine exactamente donde está el grande
-    const s = b.width / a.width;
-    const ax = a.left - sec.left, ay = a.top - sec.top;
-    const bx = b.left - sec.left, by = b.top - sec.top;
-    void world
-      .start({ x: bx - s * ax, y: by - s * ay, scale: s }, { duration: T_APPROACH / 1000, ease: [0.6, 0, 0.2, 1] })
-      .then(() => setPhase('await'));
-  }, [phase, world]);
+    // Viaje de cámara con profundidad: cada capa se acerca según su distancia.
+    // La capa del globo (profundidad 1) lleva el sobre pequeño exactamente al lugar del grande.
+    const S = b.width / a.width;
+    const A = { x: a.left - sec.left + a.width / 2, y: a.top - sec.top + a.height / 2 };
+    const B = { x: b.left - sec.left + b.width / 2, y: b.top - sec.top + b.height / 2 };
+    const at = (d: number) => {
+      const sc = 1 + (S - 1) * d;
+      const k = Math.min(d, 1);
+      return { x: A.x + (B.x - A.x) * k - sc * A.x, y: A.y + (B.y - A.y) * k - sc * A.y, scale: sc };
+    };
+    const dur = T_APPROACH / 1000;
+    const ease = [0.55, 0, 0.18, 1] as const;
+    void sky.start({ ...at(0.05) }, { duration: dur, ease });
+    void back.start({ ...at(0.28) }, { duration: dur, ease });
+    void mid.start({ ...at(1.45), opacity: 0, transition: { duration: dur, ease, opacity: { duration: dur * 0.55, delay: dur * 0.35 } } });
+    void world.start({ ...at(1) }, { duration: dur, ease }).then(() => setPhase('await'));
+  }, [phase, world, sky, back, mid]);
 
   /* ── Escena 3: el toque en el sello ── */
   const onSeal = useCallback(() => {
@@ -131,44 +143,9 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
 
   return (
     <section ref={sectionRef} aria-label="Apertura" className="opening relative h-[100dvh] min-h-[560px] w-full overflow-hidden bg-[#efe6d6]">
-      {/* ═════════ Escena 1: el mundo (cielo, nubes, globo) ═════════ */}
-      <motion.div
-        className="absolute inset-0 will-change-transform"
-        style={{ transformOrigin: '0 0' }}
-        initial={{ x: 0, y: 0, scale: 1 }}
-        animate={world}
-        aria-hidden
-      >
+      {/* ═════════ Escena 1: el mundo en capas de profundidad ═════════ */}
+      <motion.div className="layer" style={{ transformOrigin: '0 0' }} initial={{ x: 0, y: 0, scale: 1 }} animate={sky} aria-hidden>
         <img src={art.sky} alt="" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
-
-        {/* nubes lejanas */}
-        <CloudImg src={art.clouds[0]} cls="left-[-30%] top-[6%] w-[80%]" drift="drift-a" op={0.75} delay={0} />
-        <CloudImg src={art.clouds[1]} cls="right-[-34%] top-[22%] w-[86%]" drift="drift-b" op={0.7} delay={0.3} />
-
-        {/* globo monumental con el sobre colgando */}
-        <motion.div
-          className="balloon-monument absolute left-1/2 top-[-5%] flex flex-col items-center"
-          initial={reduce ? false : { y: '-105%' }}
-          animate={{ y: '0%' }}
-          transition={{ duration: 4.6, ease: [0.16, 0.8, 0.3, 1] }}
-        >
-          <div className="balloon-sway flex w-full flex-col items-center">
-            <Balloon className="w-full" />
-            {/* cuerda */}
-            <svg viewBox="0 0 10 100" className="-mt-[2.2%] h-[9%] min-h-[30px] w-[4px] overflow-visible" preserveAspectRatio="none" aria-hidden>
-              <path d="M5 0 C 4 30, 6 60, 5 100" stroke="#6B5143" strokeWidth="1.2" fill="none" vectorEffect="non-scaling-stroke" />
-            </svg>
-            <div ref={miniRef} className="envelope-swing -mt-[2px] w-[21%]">
-              <Envelope id="mini" />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* nubes medias, por delante del globo */}
-        <CloudImg src={art.clouds[2]} cls="left-[-38%] top-[48%] w-[96%]" drift="drift-b" op={0.92} delay={0.5} />
-        <CloudImg src={art.clouds[3]} cls="right-[-40%] top-[60%] w-[90%]" drift="drift-a" op={0.88} delay={0.8} />
-
-        {/* destellos */}
         {[
           'left-[12%] top-[16%] w-3',
           'right-[14%] top-[10%] w-4',
@@ -179,24 +156,81 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
         ))}
       </motion.div>
 
-      {/* nubes de primer plano: al acercarnos, la cámara las atraviesa */}
+      {/* nubes lejanas */}
+      <motion.div className="layer" style={{ transformOrigin: '0 0' }} initial={{ x: 0, y: 0, scale: 1 }} animate={back} aria-hidden>
+        <CloudImg src={art.clouds[0]} cls="left-[-30%] top-[6%] w-[80%]" drift="drift-a" op={0.75} delay={0} />
+        <CloudImg src={art.clouds[1]} cls="right-[-34%] top-[22%] w-[86%]" drift="drift-b" op={0.7} delay={0.3} />
+        <CloudImg src={art.clouds[3]} cls="left-[-20%] top-[70%] w-[70%]" drift="drift-b" op={0.6} delay={0.6} />
+      </motion.div>
+
+      {/* globo monumental con el sobre colgando */}
+      <motion.div className="layer" style={{ transformOrigin: '0 0' }} initial={{ x: 0, y: 0, scale: 1 }} animate={world} aria-hidden>
+        <motion.div
+          className="balloon-monument absolute left-1/2 top-[-7%] flex flex-col items-center"
+          initial={reduce ? false : { y: '-105%' }}
+          animate={{ y: '0%' }}
+          transition={{ duration: 4.6, ease: [0.16, 0.8, 0.3, 1] }}
+        >
+          <div className="balloon-sway flex w-full flex-col items-center">
+            <Balloon className="w-full" />
+            {/* cuerda */}
+            <svg viewBox="0 0 10 100" className="-mt-[3%] h-[8%] min-h-[28px] w-[4px] overflow-visible" preserveAspectRatio="none" aria-hidden>
+              <path d="M5 0 C 4 30, 6 60, 5 100" stroke="#6B5143" strokeWidth="1.2" fill="none" vectorEffect="non-scaling-stroke" />
+            </svg>
+            <div ref={miniRef} className="envelope-swing -mt-[2px] w-[21%]">
+              <Envelope id="mini" />
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* nubes medias, por delante del globo: la cámara pasa entre ellas */}
+      <motion.div className="layer" style={{ transformOrigin: '0 0' }} initial={{ x: 0, y: 0, scale: 1, opacity: 1 }} animate={mid} aria-hidden>
+        <CloudImg src={art.clouds[2]} cls="left-[-46%] top-[44%] w-[86%]" drift="drift-b" op={0.9} delay={0.5} />
+        <CloudImg src={art.clouds[3]} cls="right-[-48%] top-[56%] w-[84%]" drift="drift-a" op={0.88} delay={0.8} />
+        <CloudImg src={art.clouds[1]} cls="right-[-30%] top-[30%] w-[70%]" drift="drift-b" op={0.55} delay={1} />
+      </motion.div>
+
+      {/* nubes de primer plano: se abren hacia los lados al avanzar */}
       <motion.div
         className="pointer-events-none absolute inset-0"
         initial={false}
-        animate={phase === 'arrive' ? { scale: 1, opacity: 1 } : { scale: 2.4, opacity: 0 }}
-        transition={{ duration: T_APPROACH / 1000, ease: [0.6, 0, 0.2, 1] }}
+        animate={phase === 'arrive' ? { scale: 1, opacity: 1 } : { scale: 2.6, opacity: 0 }}
+        transition={{ duration: (T_APPROACH / 1000) * 0.7, ease: [0.55, 0, 0.3, 1] }}
         aria-hidden
       >
-        <CloudImg src={art.clouds[0]} cls="left-[-46%] bottom-[-6%] w-[118%]" drift="drift-slow" op={1} delay={0.2} from={-40} />
-        <CloudImg src={art.clouds[2]} cls="right-[-50%] bottom-[4%] w-[110%]" drift="drift-slow-rev" op={0.95} delay={0.6} from={40} />
+        <CloudImg src={art.clouds[0]} cls="left-[-52%] bottom-[-16%] w-[112%]" drift="drift-slow" op={1} delay={0.2} from={-40} />
+        <CloudImg src={art.clouds[2]} cls="right-[-56%] bottom-[-10%] w-[106%]" drift="drift-slow-rev" op={0.95} delay={0.6} from={40} />
       </motion.div>
+
+      {/* nubes que la cámara atraviesa durante el viaje */}
+      {phase === 'approach' && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          {[
+            { src: art.clouds[1], x: '-38%', y: '-8%', d: 0.25, w: '120%', top: '20%', left: '-10%' },
+            { src: art.clouds[3], x: '42%', y: '6%', d: 0.95, w: '130%', top: '42%', left: '-15%' },
+            { src: art.clouds[0], x: '-30%', y: '14%', d: 1.65, w: '140%', top: '30%', left: '-20%' },
+          ].map((c, i) => (
+            <motion.img
+              key={i}
+              src={c.src}
+              alt=""
+              className="absolute"
+              style={{ width: c.w, top: c.top, left: c.left }}
+              initial={{ opacity: 0, scale: 0.55, x: '0%', y: '0%' }}
+              animate={{ opacity: [0, 0.95, 0.9, 0], scale: [0.55, 1.2, 2.2, 3.4], x: ['0%', '0%', c.x, c.x], y: ['0%', '0%', c.y, c.y] }}
+              transition={{ duration: 1.7, delay: c.d, ease: 'easeIn', times: [0, 0.35, 0.75, 1] }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* luz y bruma que separan el sobre del fondo (llega durante el acercamiento) */}
       <motion.div
         className="envelope-mist pointer-events-none absolute inset-0"
         initial={false}
         animate={{ opacity: phase === 'arrive' ? 0 : 1 }}
-        transition={{ duration: 1.5, delay: phase === 'approach' ? 1.2 : 0 }}
+        transition={{ duration: 1.3, delay: phase === 'approach' ? (T_APPROACH / 1000) * 0.62 : 0 }}
         aria-hidden
       />
 
@@ -209,7 +243,7 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
         style={{ pointerEvents: showClose ? 'auto' : 'none' }}
       >
         <motion.p
-          className="relative mb-[7dvh] text-center font-display text-[1.85rem] font-light italic leading-snug text-cocoa sm:text-[2.3rem]"
+          className="envelope-line relative mb-[7dvh] max-w-[21rem] text-center font-display text-[2.15rem] font-medium italic leading-[1.18] text-cocoa sm:text-[2.6rem]"
           initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
           animate={phase === 'await' || phase === 'open' ? { opacity: phase === 'open' ? 0 : 1, y: 0, filter: 'blur(0px)' } : {}}
           transition={{ duration: 1.4, ease: EASE, delay: phase === 'await' ? 0.4 : 0 }}
@@ -235,7 +269,7 @@ export function Opening({ onComplete }: { onComplete: () => void }) {
         </div>
 
         <motion.span
-          className="label relative mt-[6dvh] text-cafe"
+          className="label relative mt-[6dvh] text-[0.74rem] font-medium tracking-[0.28em] text-cocoa/85"
           initial={{ opacity: 0 }}
           animate={{ opacity: phase === 'await' ? 1 : 0 }}
           transition={{ duration: 1.2, delay: phase === 'await' ? 1.3 : 0 }}

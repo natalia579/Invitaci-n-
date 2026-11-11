@@ -68,8 +68,8 @@ body {
 }
 
 .balloon-monument {
-  width: min(128vw, 78dvh);
-  margin-left: calc(min(128vw, 78dvh) / -2);
+  width: min(118vw, 68dvh);
+  margin-left: calc(min(118vw, 68dvh) / -2);
 }
 .balloon-sway {
   transform-origin: 50% 0;
@@ -86,6 +86,14 @@ body {
 
 .envelope-close {
   width: min(86vw, 470px, 58dvh);
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.envelope-line {
+  text-shadow: 0 0 18px rgba(251, 247, 239, 0.95), 0 0 2px rgba(251, 247, 239, 0.9);
 }
 .envelope-mist {
   background:

@@ -19,12 +19,15 @@ function PaperDefs({ id }: { id: string }) {
     <defs>
       <filter id={`${id}-paper`} x="0" y="0" width="100%" height="100%">
         <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="4" result="n" />
-        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.09 0" result="fib" />
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.27  0 0 0 0.16 0" result="fib" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.9" numOctaves="2" seed="21" result="laid0" />
+        <feColorMatrix in="laid0" type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.4  0 0 0 0 0.3  0 0 0 0.07 0" result="laid" />
         <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="9" result="m" />
-        <feColorMatrix in="m" type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.43  0 0 0 0 0.3  0 0 0 0.12 0" result="mot" />
+        <feColorMatrix in="m" type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.43  0 0 0 0 0.3  0 0 0 0.16 0" result="mot" />
         <feMerge>
           <feMergeNode in="SourceGraphic" />
           <feMergeNode in="mot" />
+          <feMergeNode in="laid" />
           <feMergeNode in="fib" />
         </feMerge>
       </filter>
@@ -198,22 +201,32 @@ function WaxSeal({ id, broken }: { id: string; broken: boolean }) {
         <clipPath id={`${id}-halfR`}>
           <path d={`${CRACK} L 220 200 L 220 0 Z`} />
         </clipPath>
-        <radialGradient id={`${id}-wax`} cx="0.38" cy="0.32" r="0.75">
-          <stop offset="0" stopColor="#7a4a35" />
-          <stop offset="0.55" stopColor="#5a3324" />
-          <stop offset="1" stopColor="#3b2017" />
+        {/* el gris del dibujo es la ALTURA del lacre; el filtro lo ilumina */}
+        <radialGradient id={`${id}-dome`} cx="0.5" cy="0.5" r="0.55">
+          <stop offset="0" stopColor="#c8c8c8" />
+          <stop offset="0.75" stopColor="#a6a6a6" />
+          <stop offset="1" stopColor="#5a5a5a" />
         </radialGradient>
-        <radialGradient id={`${id}-waxIn`} cx="0.6" cy="0.68" r="0.7">
-          <stop offset="0" stopColor="#6e4230" />
-          <stop offset="1" stopColor="#4a2a1e" />
+        <radialGradient id={`${id}-press`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#8e8e8e" />
+          <stop offset="1" stopColor="#7a7a7a" />
         </radialGradient>
-        <filter id={`${id}-sheen`} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b" />
-          <feSpecularLighting in="b" surfaceScale="6" specularConstant="0.9" specularExponent="26" lightingColor="#ffe6d2" result="s">
-            <fePointLight x="40" y="10" z="140" />
+        <filter id={`${id}-wax`} x="-15%" y="-15%" width="130%" height="130%" colorInterpolationFilters="sRGB">
+          <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" result="h0" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="3" result="tex" />
+          <feColorMatrix in="tex" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0" result="texA" />
+          <feComposite in="h0" in2="texA" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="h1" />
+          <feGaussianBlur in="h1" stdDeviation="1.1" result="h" />
+          <feDiffuseLighting in="h" surfaceScale="9" diffuseConstant="1.05" lightingColor="#ffffff" result="diff">
+            <feDistantLight azimuth="225" elevation="48" />
+          </feDiffuseLighting>
+          <feSpecularLighting in="h" surfaceScale="9" specularConstant="0.75" specularExponent="34" lightingColor="#ffe9d8" result="spec">
+            <feDistantLight azimuth="225" elevation="52" />
           </feSpecularLighting>
-          <feComposite in="s" in2="SourceAlpha" operator="in" result="si" />
-          <feComposite in="SourceGraphic" in2="si" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0" />
+          <feFlood floodColor="#5b3122" result="wax" />
+          <feComposite in="wax" in2="diff" operator="arithmetic" k1="1.05" k2="0.18" k3="0" k4="0" result="lit" />
+          <feComposite in="lit" in2="spec" operator="arithmetic" k1="0" k2="1" k3="0.42" k4="0" result="shine" />
+          <feComposite in="shine" in2="SourceAlpha" operator="in" />
         </filter>
         <filter id={`${id}-sealShadow`} x="-30%" y="-30%" width="160%" height="160%">
           <feDropShadow dx="2" dy="5" stdDeviation="4" floodColor="#2a1810" floodOpacity="0.45" />
@@ -243,18 +256,18 @@ function WaxSeal({ id, broken }: { id: string; broken: boolean }) {
 }
 
 function SealBody({ id }: { id: string }) {
+  // Mapa de alturas en grises (claro = alto). El filtro `wax` lo convierte en lacre iluminado.
   return (
-    <g filter={`url(#${id}-sheen)`}>
-      <path d={BLOB} fill={`url(#${id}-wax)`} />
-      {/* anillo prensado */}
-      <circle cx="100" cy="100" r="62" fill={`url(#${id}-waxIn)`} />
-      <circle cx="100" cy="100" r="62" fill="none" stroke="#2f1a12" strokeOpacity="0.55" strokeWidth="3" />
-      <circle cx="101.5" cy="101.5" r="62" fill="none" stroke="#a87a62" strokeOpacity="0.35" strokeWidth="1.5" />
-      <circle cx="100" cy="100" r="52" fill="none" stroke="#2f1a12" strokeOpacity="0.35" strokeWidth="1" strokeDasharray="2 4" />
-      {/* estrella grabada (hundida: sombra arriba-izquierda, luz abajo-derecha) */}
-      <path d={STAR} fill="#241109" opacity="0.8" transform="translate(-2 -2)" />
-      <path d={STAR} fill="#c49a80" opacity="0.7" transform="translate(2 2)" />
-      <path d={STAR} fill="#5a3324" />
+    <g filter={`url(#${id}-wax)`}>
+      <path d={BLOB} fill={`url(#${id}-dome)`} />
+      {/* borde del sello prensado: anillo elevado */}
+      <circle cx="100" cy="100" r="64" fill="none" stroke="#d0d0d0" strokeWidth="7" />
+      {/* zona prensada (más baja) */}
+      <circle cx="100" cy="100" r="60" fill={`url(#${id}-press)`} />
+      <circle cx="100" cy="100" r="51" fill="none" stroke="#9a9a9a" strokeWidth="1.6" strokeDasharray="2.5 4" />
+      {/* estrella grabada en relieve */}
+      <path d={STAR} fill="#b4b4b4" />
+      <path d={STAR} fill="none" stroke="#c4c4c4" strokeWidth="2" strokeLinejoin="round" />
     </g>
   );
 }
